@@ -1365,6 +1365,7 @@
         async function saveInvestment(formData, slotId, photoDataUrl) {
             const affiliateNumber = formData.get('affiliateNumber');
             const slotNumber = generateSlotNumber(slotId);
+            const paymentMode = formData.get('paymentMode');
             
             const investmentData = {
                 fullName: formData.get('fullName'),
@@ -1372,7 +1373,7 @@
                 mobile: formData.get('mobile'),
                 portfolioPassword: formData.get('portfolioPassword'),
                 affiliateNumber: affiliateNumber,
-                paymentMode: formData.get('paymentMode'),
+                paymentMode: paymentMode,
                 dividendMode: formData.get('dividendMode'),
                 accountDetails: formData.get('accountDetails'),
                 customText: formData.get('customText'),
@@ -1387,7 +1388,15 @@
             };
             
             investments[slotId] = investmentData;
-            await saveData('investments', investments);
+            
+            // Save to Firebase
+            try {
+                await saveData('investments', investments);
+                updateConnectionStatus('online', 'Investment application saved');
+            } catch (error) {
+                console.error('Failed to save investment to Firebase:', error);
+                updateConnectionStatus('offline', 'Application saved locally only');
+            }
             
             // Process affiliate commission if affiliate number provided
             if (affiliateNumber) {
@@ -1398,12 +1407,11 @@
             const slot = document.querySelector(`[data-slot-id="${slotId}"]`);
             updateSlotAppearance(slot, slotId);
             
-            // Send email notification (simulated)
-            sendEmailNotification(investmentData, slotId);
-            
             closeModal();
             updateDashboard();
-            showPaymentModal();
+            
+            // Show payment instructions based on selected payment mode
+            showPaymentInstructionsModal(paymentMode);
         }
 
         async function processAffiliateCommission(affiliateNumber, investmentData, slotId) {
@@ -1437,15 +1445,157 @@
             }
         }
 
-        function sendEmailNotification(investmentData, slotId) {
-            // In a real implementation, this would send an actual email
-            console.log('Email notification sent to phantomsalonga@gmail.com');
-            console.log('Investment Details:', { slotId, ...investmentData });
+        function showPaymentInstructionsModal(paymentMode) {
+            // Show pending review message first
+            alert('✅ Investment Application Submitted!\n\n' +
+                  '📋 Your application is now under review.\n\n' +
+                  '💳 Next Step: Complete your payment using the instructions that will appear next.\n\n' +
+                  '📸 After payment, take a screenshot and join our Telegram group to send proof of payment for verification.\n\n' +
+                  '⏳ Your investment slot will be approved once payment is verified.');
             
-            // Simulate email with alert (remove in production)
+            // Then show specific payment instructions
             setTimeout(() => {
-                alert(`Email notification sent to phantomsalonga@gmail.com for slot ${slotId}`);
+                showSpecificPaymentInstructions(paymentMode);
             }, 1000);
+        }
+
+        function showSpecificPaymentInstructions(paymentMode) {
+            const modal = document.getElementById('paymentModal');
+            const container = modal.querySelector('.form-container');
+            
+            let instructionsHTML = '';
+            
+            switch(paymentMode) {
+                case 'GCash':
+                    instructionsHTML = `
+                        <h3 class="text-2xl font-bold mb-6 text-center">📱 GCash Payment Instructions</h3>
+                        <div class="space-y-4">
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                                <h4 class="font-bold text-blue-800 mb-4 text-xl">💳 Send Payment via GCash</h4>
+                                <div class="text-center mb-4">
+                                    <div class="text-3xl font-bold text-blue-800 mb-2">09606555951</div>
+                                    <p class="text-blue-700">Send your investment amount to this GCash number</p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+                                <h4 class="font-bold text-red-800 mb-3">📸 IMPORTANT: After Payment</h4>
+                                <ol class="text-red-700 list-decimal list-inside space-y-2">
+                                    <li>Take a screenshot of your GCash payment confirmation</li>
+                                    <li>Join our Telegram group using the button below</li>
+                                    <li>Send your payment screenshot in the group</li>
+                                    <li>Wait for admin verification and approval</li>
+                                </ol>
+                                <a href="https://t.me/+d_wxE9CigKA3OTA1" target="_blank" rel="noopener noreferrer" 
+                                   class="inline-block bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors mt-4 w-full text-center">
+                                    📱 Join Telegram Group for Verification
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'Palawan Pay':
+                    instructionsHTML = `
+                        <h3 class="text-2xl font-bold mb-6 text-center">🏪 Palawan Pay Instructions</h3>
+                        <div class="space-y-4">
+                            <div class="bg-orange-50 border border-orange-200 rounded-lg p-6">
+                                <h4 class="font-bold text-orange-800 mb-4 text-xl">💳 Send Payment via Palawan Pay</h4>
+                                <div class="text-center mb-4">
+                                    <div class="text-3xl font-bold text-orange-800 mb-2">09606555951</div>
+                                    <p class="text-orange-700">Send your investment amount to this mobile number</p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+                                <h4 class="font-bold text-red-800 mb-3">📸 IMPORTANT: After Payment</h4>
+                                <ol class="text-red-700 list-decimal list-inside space-y-2">
+                                    <li>Take a photo of your Palawan Pay receipt</li>
+                                    <li>Join our Telegram group using the button below</li>
+                                    <li>Send your payment receipt in the group</li>
+                                    <li>Wait for admin verification and approval</li>
+                                </ol>
+                                <a href="https://t.me/+d_wxE9CigKA3OTA1" target="_blank" rel="noopener noreferrer" 
+                                   class="inline-block bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors mt-4 w-full text-center">
+                                    📱 Join Telegram Group for Verification
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'Bank Transfer':
+                    instructionsHTML = `
+                        <h3 class="text-2xl font-bold mb-6 text-center">🏦 Bank Transfer Instructions</h3>
+                        <div class="space-y-4">
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+                                <h4 class="font-bold text-green-800 mb-4 text-xl">💳 Bank Transfer Details</h4>
+                                <div class="space-y-2 text-green-700">
+                                    <p><strong>Bank:</strong> BPI</p>
+                                    <p><strong>Account Number:</strong> 6889023641</p>
+                                    <p><strong>Account Name:</strong> Ricardo Nacional III</p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+                                <h4 class="font-bold text-red-800 mb-3">📸 IMPORTANT: After Payment</h4>
+                                <ol class="text-red-700 list-decimal list-inside space-y-2">
+                                    <li>Take a screenshot of your bank transfer confirmation</li>
+                                    <li>Join our Telegram group using the button below</li>
+                                    <li>Send your transfer screenshot in the group</li>
+                                    <li>Wait for admin verification and approval</li>
+                                </ol>
+                                <a href="https://t.me/+d_wxE9CigKA3OTA1" target="_blank" rel="noopener noreferrer" 
+                                   class="inline-block bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors mt-4 w-full text-center">
+                                    📱 Join Telegram Group for Verification
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'PayPal':
+                    instructionsHTML = `
+                        <h3 class="text-2xl font-bold mb-6 text-center">💰 PayPal Payment Instructions</h3>
+                        <div class="space-y-4">
+                            <div class="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                                <h4 class="font-bold text-purple-800 mb-4 text-xl">💳 PayPal Payment Details</h4>
+                                <div class="space-y-2 text-purple-700">
+                                    <p><strong>PayPal Email:</strong> ricardoiiinacional@gmail.com</p>
+                                    <p><strong>Mobile:</strong> 09606555951</p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+                                <h4 class="font-bold text-red-800 mb-3">📸 IMPORTANT: After Payment</h4>
+                                <ol class="text-red-700 list-decimal list-inside space-y-2">
+                                    <li>Take a screenshot of your PayPal payment confirmation</li>
+                                    <li>Join our Telegram group using the button below</li>
+                                    <li>Send your payment screenshot in the group</li>
+                                    <li>Wait for admin verification and approval</li>
+                                </ol>
+                                <a href="https://t.me/+d_wxE9CigKA3OTA1" target="_blank" rel="noopener noreferrer" 
+                                   class="inline-block bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors mt-4 w-full text-center">
+                                    📱 Join Telegram Group for Verification
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                default:
+                    instructionsHTML = `
+                        <h3 class="text-2xl font-bold mb-6 text-center">💳 Payment Instructions</h3>
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+                            <p class="text-gray-700">Please contact admin for payment instructions.</p>
+                        </div>
+                    `;
+            }
+            
+            container.innerHTML = instructionsHTML + `
+                <div class="flex gap-3 pt-6">
+                    <button onclick="closePaymentModal()" class="flex-1 bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600 transition-colors">Close</button>
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
         }
 
         // ===== DASHBOARD UPDATES =====
@@ -1605,6 +1755,18 @@
                                         </div>
                                     </div>
                                     <div class="flex flex-col justify-center space-y-2">
+                                        <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center mb-2">
+                                            <div class="text-blue-800 font-bold mb-2">🔐 PASSWORD MANAGEMENT</div>
+                                            <div class="text-xs text-blue-600 mb-2">Current Password: <strong>${investment.portfolioPassword}</strong></div>
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <input type="password" id="newPassword_${slotId}" placeholder="New password" 
+                                                       class="flex-1 p-2 border rounded text-sm" minlength="6">
+                                                <button onclick="resetInvestorPassword('${slotId}')" 
+                                                        class="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700">
+                                                    🔄 Reset
+                                                </button>
+                                            </div>
+                                        </div>
                                         <div class="bg-red-50 border-2 border-red-200 rounded-lg p-4 text-center">
                                             <div class="text-red-800 font-bold mb-2">⚠️ DANGER ZONE</div>
                                             <button onclick="confirmRevokeInvestment('${slotId}')" 
@@ -1897,6 +2059,55 @@
             alert(`✅ Dividend withdrawn amount updated!\n\nInvestor: ${investment.fullName}\nTotal Withdrawn: ₱${withdrawnAmount.toLocaleString()}\nAvailable Balance: ₱${((investment.dividendEarned || 0) - withdrawnAmount).toLocaleString()}`);
         }
 
+        async function resetInvestorPassword(slotId) {
+            const newPasswordInput = document.getElementById(`newPassword_${slotId}`);
+            if (!newPasswordInput) {
+                alert('Error: Password input field not found!');
+                return;
+            }
+            
+            const newPassword = newPasswordInput.value.trim();
+            const investment = investments[slotId];
+            
+            if (!investment) {
+                alert('Investment not found!');
+                return;
+            }
+            
+            if (!newPassword) {
+                alert('Please enter a new password!');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                alert('Password must be at least 6 characters long!');
+                return;
+            }
+            
+            const oldPassword = investment.portfolioPassword;
+            
+            // Update the password
+            investment.portfolioPassword = newPassword;
+            
+            // Save changes to Firebase
+            try {
+                await saveData('investments', investments);
+                updateConnectionStatus('online', 'Password updated successfully');
+            } catch (error) {
+                console.error('Failed to save password update to Firebase:', error);
+                updateConnectionStatus('offline', 'Password updated locally only');
+                alert('⚠️ Password updated but failed to save to Firebase. Changes may not persist.');
+            }
+            
+            // Clear the input field
+            newPasswordInput.value = '';
+            
+            // Reload the admin panel to show the new password
+            loadAdminInvestments();
+            
+            alert(`✅ Password Reset Successful!\n\nInvestor: ${investment.fullName}\nEmail: ${investment.email}\n\nOld Password: ${oldPassword}\nNew Password: ${newPassword}\n\nThe investor can now use the new password to access their portfolio.`);
+        }
+
         async function approveInvestment(slotId) {
             const investment = investments[slotId];
             investment.status = 'approved';
@@ -1926,7 +2137,15 @@
                 }
             }
             
-            await saveData('investments', investments);
+            // Save to Firebase
+            try {
+                await saveData('investments', investments);
+                updateConnectionStatus('online', 'Investment approved and saved');
+            } catch (error) {
+                console.error('Failed to save approved investment to Firebase:', error);
+                updateConnectionStatus('offline', 'Approval saved locally only');
+                alert('⚠️ Investment approved but failed to save to Firebase. Changes may not persist.');
+            }
             
             const slot = document.querySelector(`[data-slot-id="${slotId}"]`);
             updateSlotAppearance(slot, slotId);
@@ -3017,5 +3236,5 @@
             alert('✅ All affiliate data cleared successfully!');
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985dac55a3259d22',t:'MTc1OTAwNDEyOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985dd3e276469894',t:'MTc1OTAwNTc0OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
