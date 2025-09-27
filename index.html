@@ -1387,15 +1387,35 @@
                 dividendWithdrawn: 0
             };
             
+            // Add to local storage first
             investments[slotId] = investmentData;
             
-            // Save to Firebase
-            try {
-                await saveData('investments', investments);
-                updateConnectionStatus('online', 'Investment application saved');
-            } catch (error) {
-                console.error('Failed to save investment to Firebase:', error);
-                updateConnectionStatus('offline', 'Application saved locally only');
+            // Save to Firebase immediately with proper error handling
+            if (isFirebaseConfigured && db) {
+                try {
+                    updateConnectionStatus('loading', 'Saving investment to Firebase...');
+                    
+                    // Save the individual investment document
+                    await db.collection('investments').doc(slotId).set(investmentData);
+                    
+                    updateConnectionStatus('online', 'Investment saved to Firebase successfully');
+                    console.log('Investment saved to Firebase:', slotId);
+                } catch (error) {
+                    console.error('Failed to save investment to Firebase:', error);
+                    updateConnectionStatus('offline', 'Firebase save failed');
+                    
+                    // Try alternative save method
+                    try {
+                        await saveCollectionToFirebase('investments', investments);
+                        updateConnectionStatus('online', 'Investment saved via collection update');
+                    } catch (retryError) {
+                        console.error('Collection save also failed:', retryError);
+                        updateConnectionStatus('offline', 'All Firebase saves failed');
+                    }
+                }
+            } else {
+                console.log('Firebase not configured, investment saved locally only');
+                updateConnectionStatus('offline', 'Firebase not available - saved locally');
             }
             
             // Process affiliate commission if affiliate number provided
@@ -1558,7 +1578,7 @@
                             <div class="bg-purple-50 border border-purple-200 rounded-lg p-6">
                                 <h4 class="font-bold text-purple-800 mb-4 text-xl">💳 PayPal Payment Details</h4>
                                 <div class="space-y-2 text-purple-700">
-                                    <p><strong>PayPal Email:</strong> ricardoiiinacional@gmail.com</p>
+                                    <p><strong>PayPal Email:</strong> phantomsalonga@gmail.com</p>
                                     <p><strong>Mobile:</strong> 09606555951</p>
                                 </div>
                             </div>
@@ -3236,5 +3256,5 @@
             alert('✅ All affiliate data cleared successfully!');
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985dd3e276469894',t:'MTc1OTAwNTc0OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985deca715739891',t:'MTc1OTAwNjc2My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
