@@ -2107,4 +2107,32 @@
                                         </div>
                                         <p class="text-sm text-gray-600">Investment: ₱${ref.investmentAmount.toLocaleString()}</p>
                                         <p class="text-sm text-gray-600">Your Commission: ₱${ref.commission.toLocaleString()}</p>
-                                        <p class="text-xs text-gray-400">Date: ${new Date(ref.date).toLocaleDate<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985d1495a19b9d1f',t:'MTc1ODk5NzkxMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+                                        <p class="text-xs text-gray-400">Date: ${new Date(ref.date).toLocaleDateString()}</p>
+                    </div>
+                </div>
+            </div>
+        `).join('')}
+    </div>
+`;
+            } else {
+                referralsList.innerHTML = `
+                    <div class="bg-gray-50 border rounded-lg p-6 text-center">
+                        <p class="text-gray-500">No referrals yet. Share your affiliate number to start earning!</p>
+                    </div>
+                `;
+            }
+            
+            // Show dashboard content
+            document.getElementById('affiliateDashboardLogin').classList.add('hidden');
+            document.getElementById('affiliateDashboardContent').classList.remove('hidden');
+        }
+
+        function copyAffiliateNumber() {
+            const numberField = document.getElementById('affiliateNumberToCopy');
+            numberField.select();
+            document.execCommand('copy');
+            alert('Affiliate number copied to clipboard!');
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985d1d2637b89d1f',t:'MTc1ODk5ODI2My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
