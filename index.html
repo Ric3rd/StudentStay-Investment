@@ -118,122 +118,7 @@
             </h1>
             <p class="text-xl opacity-90 mb-6">Premium Investment Opportunity</p>
             
-            <!-- Firebase Setup Notice -->
-            <div id="setupNotice" class="bg-red-500/20 backdrop-blur-sm rounded-xl p-6 max-w-6xl mx-auto mb-6 border border-red-400/30">
-                <h2 class="text-2xl font-bold text-red-200 mb-4">🔥 FIREBASE DATABASE SETUP GUIDE</h2>
-                <p class="text-red-100 mb-6 text-lg">Your investment platform is currently running in demo mode. Follow these detailed steps to connect it to Firebase for real-time cloud database:</p>
-                
-                <div class="grid md:grid-cols-2 gap-6">
-                    <!-- Left Column: Step-by-step instructions -->
-                    <div class="bg-black/30 rounded-lg p-5">
-                        <h3 class="text-yellow-200 font-bold text-lg mb-4">📋 STEP-BY-STEP SETUP:</h3>
-                        <div class="space-y-4 text-sm">
-                            <div class="bg-blue-900/30 p-3 rounded">
-                                <div class="font-bold text-blue-200 mb-2">STEP 1: Create Firebase Project</div>
-                                <div class="text-blue-100 space-y-1">
-                                    <p>• Go to <a href="https://console.firebase.google.com" target="_blank" class="text-yellow-300 underline font-bold">console.firebase.google.com</a></p>
-                                    <p>• Click "Create a project" or "Add project"</p>
-                                    <p>• Enter project name (e.g., "StudentStay-Investment")</p>
-                                    <p>• Disable Google Analytics (not needed)</p>
-                                    <p>• Click "Create project"</p>
-                                </div>
-                            </div>
-                            
-                            <div class="bg-green-900/30 p-3 rounded">
-                                <div class="font-bold text-green-200 mb-2">STEP 2: Enable Firestore Database</div>
-                                <div class="text-green-100 space-y-1">
-                                    <p>• In left sidebar, click "Firestore Database"</p>
-                                    <p>• Click "Create database"</p>
-                                    <p>• Choose "Start in test mode" (for now)</p>
-                                    <p>• Select your region (closest to you)</p>
-                                    <p>• Click "Done"</p>
-                                </div>
-                            </div>
-                            
-                            <div class="bg-purple-900/30 p-3 rounded">
-                                <div class="font-bold text-purple-200 mb-2">STEP 3: Get Configuration</div>
-                                <div class="text-purple-100 space-y-1">
-                                    <p>• Click the gear icon ⚙️ → "Project settings"</p>
-                                    <p>• Scroll down to "Your apps" section</p>
-                                    <p>• Click the web icon "&lt;/&gt;" to add web app</p>
-                                    <p>• Enter app name, click "Register app"</p>
-                                    <p>• Copy the config object (looks like the example →)</p>
-                                </div>
-                            </div>
-                            
-                            <div class="bg-orange-900/30 p-3 rounded">
-                                <div class="font-bold text-orange-200 mb-2">STEP 4: Update Code</div>
-                                <div class="text-orange-100 space-y-1">
-                                    <p>• Find the firebaseConfig section in the code</p>
-                                    <p>• Replace "YOUR_API_KEY_HERE" with your actual values</p>
-                                    <p>• Save and refresh the page</p>
-                                    <p>• The red notice will disappear when connected!</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Right Column: Example config -->
-                    <div class="bg-black/30 rounded-lg p-5">
-                        <h3 class="text-yellow-200 font-bold text-lg mb-4">📄 EXAMPLE CONFIG:</h3>
-                        <div class="bg-gray-900 p-4 rounded text-xs font-mono text-green-300 overflow-x-auto">
-                            <div class="text-gray-400 mb-2">// Replace this in the code:</div>
-                            <div class="text-white">const firebaseConfig = {</div>
-                            <div class="ml-4 space-y-1">
-                                <div>apiKey: <span class="text-yellow-300">"AIzaSyC..."</span>,</div>
-                                <div>authDomain: <span class="text-yellow-300">"your-project.firebaseapp.com"</span>,</div>
-                                <div>projectId: <span class="text-yellow-300">"your-project-id"</span>,</div>
-                                <div>storageBucket: <span class="text-yellow-300">"your-project.appspot.com"</span>,</div>
-                                <div>messagingSenderId: <span class="text-yellow-300">"123456789"</span>,</div>
-                                <div>appId: <span class="text-yellow-300">"1:123:web:abc123"</span></div>
-                            </div>
-                            <div class="text-white">};</div>
-                        </div>
-                        
-                        <div class="mt-4 p-3 bg-yellow-900/30 rounded">
-                            <div class="text-yellow-200 font-bold mb-2">🔒 SECURITY RULES (Optional):</div>
-                            <div class="text-yellow-100 text-xs space-y-1">
-                                <p>For demo purposes, you can set Firestore rules to:</p>
-                                <div class="bg-gray-900 p-2 rounded mt-2 font-mono text-green-300">
-                                    <div>rules_version = '2';</div>
-                                    <div>service cloud.firestore {</div>
-                                    <div class="ml-2">match /databases/{database}/documents {</div>
-                                    <div class="ml-4">match /{document=**} {</div>
-                                    <div class="ml-6">allow read, write: if true;</div>
-                                    <div class="ml-4">}</div>
-                                    <div class="ml-2">}</div>
-                                    <div>}</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-4 p-3 bg-green-900/30 rounded">
-                            <div class="text-green-200 font-bold mb-2">✅ BENEFITS OF FIREBASE:</div>
-                            <div class="text-green-100 text-xs space-y-1">
-                                <p>• Real-time data synchronization</p>
-                                <p>• Automatic cloud backups</p>
-                                <p>• Multiple device access</p>
-                                <p>• Scalable database</p>
-                                <p>• No server maintenance needed</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="mt-6 flex gap-4 justify-center">
-                    <button onclick="hideSetupNotice()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold">
-                        Skip Setup - Use Demo Mode
-                    </button>
-                    <a href="https://console.firebase.google.com" target="_blank" rel="noopener noreferrer" 
-                       class="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg font-bold">
-                        🚀 Open Firebase Console
-                    </a>
-                </div>
-                
-                <div class="mt-4 text-center">
-                    <p class="text-red-200 text-sm">💡 <strong>Need Help?</strong> Join our <a href="https://t.me/+d_wxE9CigKA3OTA1" target="_blank" class="text-blue-300 underline">Telegram group</a> for technical support!</p>
-                </div>
-            </div>
+
             
             <!-- Quick Action Buttons -->
             <div class="flex justify-center gap-4 mb-6">
@@ -790,15 +675,14 @@
 
     <script>
         // ===== FIREBASE CONFIGURATION =====
-        // ✅ Firebase configuration connected to studentstay-997a0 project
+        // Firebase configuration - replace with your own values
         const firebaseConfig = {
-            apiKey: "AIzaSyCkc3FBjQDUeKxOjG0BnoXwGjssurr9xNc",
-            authDomain: "studentstay-997a0.firebaseapp.com",
-            projectId: "studentstay-997a0",
-            storageBucket: "studentstay-997a0.firebasestorage.app",
-            messagingSenderId: "471410985399",
-            appId: "1:471410985399:web:b765f88c1f4e4e77ab0032",
-            measurementId: "G-HS1NRL5WL6"
+            apiKey: "YOUR_API_KEY_HERE",
+            authDomain: "your-project.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
         };
 
         // Initialize Firebase
@@ -932,8 +816,6 @@
             }
         }
 
-
-
         // Initialize data loading
         async function initializeData() {
             updateConnectionStatus('loading', 'Initializing...');
@@ -948,7 +830,6 @@
                 adminCredentials = JSON.parse(localStorage.getItem('adminCredentials') || '{"username": "ric3rd", "password": "nacs2512364"}');
                 
                 updateConnectionStatus('offline', 'Demo mode - using local storage');
-                document.getElementById('setupNotice').style.display = 'block';
             } else {
                 // Load from Firebase
                 try {
@@ -970,7 +851,6 @@
                     }
                     
                     updateConnectionStatus('online', 'Connected to Firebase');
-                    document.getElementById('setupNotice').style.display = 'none';
                 } catch (error) {
                     console.error('Failed to load from Firebase:', error);
                     // Fallback to localStorage
@@ -1050,10 +930,7 @@
             }
         }
 
-        // Hide setup notice
-        function hideSetupNotice() {
-            document.getElementById('setupNotice').style.display = 'none';
-        }
+
 
         // ===== FLOOR CONFIGURATION =====
         const floorConfig = {
@@ -2062,59 +1939,5 @@
 
         // ===== PORTFOLIO FUNCTIONS =====
         function showPortfolioDashboard() {
-            const modal = document.getElementById('portfolioModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            document.getElementById('portfolioLogin').classList.remove('hidden');
-            document.getElementById('portfolioContent').classList.add('hidden');
-            document.getElementById('portfolioEmail').value = '';
-        }
-
-        function closePortfolioModal() {
-            const modal = document.getElementById('portfolioModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        function loadPortfolio() {
-            const email = document.getElementById('portfolioEmail').value.toLowerCase();
-            if (!email) {
-                alert('Please enter your email address');
-                return;
-            }
-            
-            // Find all investments for this email
-            const userInvestments = Object.entries(investments).filter(([_, investment]) => 
-                investment.email.toLowerCase() === email && investment.status === 'approved'
-            );
-            
-            if (userInvestments.length === 0) {
-                alert('No approved investments found for this email address');
-                return;
-            }
-            
-            // Calculate totals
-            const totalInvested = userInvestments.reduce((sum, [_, inv]) => sum + parseInt(inv.investmentAmount), 0);
-            const totalDividends = userInvestments.reduce((sum, [_, inv]) => sum + (inv.dividendEarned || 0), 0);
-            const totalWithdrawn = userInvestments.reduce((sum, [_, inv]) => sum + (inv.dividendWithdrawn || 0), 0);
-            
-            // Update display
-            document.getElementById('totalInvested').textContent = `₱${totalInvested.toLocaleString()}`;
-            document.getElementById('dividendEarned').textContent = `₱${totalDividends.toLocaleString()}`;
-            document.getElementById('dividendWithdrawn').textContent = `₱${totalWithdrawn.toLocaleString()}`;
-            document.getElementById('totalSlots').textContent = userInvestments.length;
-            
-            // Show investments
-            const container = document.getElementById('portfolioInvestments');
-            container.innerHTML = `
-                <h4 class="text-xl font-bold mb-4">Your Investment Portfolio</h4>
-                <div class="space-y-4">
-                    ${userInvestments.map(([slotId, investment]) => `
-                        <div class="bg-white p-4 rounded-lg border">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h5 class="font-bold text-lg">${slotId}</h5>
-                                    <p class="text-gray-600">${investment.floorInfo}</p>
-                                    <p class="text-sm text-gray-500">Investment: ₱${parseInt(investment.investmentAmount).toLocaleString()}</p>
-                                    <p class
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985c9e06e6299d28',t:'MTc1ODk5MzA1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+            const modal = document.getElementById('portfol
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985ccee5744f9894',t:'MTc1ODk5NTA1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
