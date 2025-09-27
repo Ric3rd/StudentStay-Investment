@@ -1387,35 +1387,57 @@
                 dividendWithdrawn: 0
             };
             
-            // Add to local storage first
+            // Add to local storage first for immediate UI update
             investments[slotId] = investmentData;
             
-            // Save to Firebase immediately with proper error handling
+            // Update slot appearance immediately
+            const slot = document.querySelector(`[data-slot-id="${slotId}"]`);
+            updateSlotAppearance(slot, slotId);
+            updateDashboard();
+            
+            // Save to Firebase with multiple retry attempts
+            let firebaseSaveSuccess = false;
+            
             if (isFirebaseConfigured && db) {
+                updateConnectionStatus('loading', 'Saving to Firebase database...');
+                
+                // Method 1: Direct document save
                 try {
-                    updateConnectionStatus('loading', 'Saving investment to Firebase...');
-                    
-                    // Save the individual investment document
-                    await db.collection('investments').doc(slotId).set(investmentData);
-                    
-                    updateConnectionStatus('online', 'Investment saved to Firebase successfully');
-                    console.log('Investment saved to Firebase:', slotId);
+                    await db.collection('investments').doc(slotId).set(investmentData, { merge: true });
+                    firebaseSaveSuccess = true;
+                    updateConnectionStatus('online', 'Investment saved to Firebase');
+                    console.log('✅ Investment saved to Firebase via direct method:', slotId);
                 } catch (error) {
-                    console.error('Failed to save investment to Firebase:', error);
-                    updateConnectionStatus('offline', 'Firebase save failed');
+                    console.error('❌ Direct Firebase save failed:', error);
                     
-                    // Try alternative save method
+                    // Method 2: Batch write
                     try {
-                        await saveCollectionToFirebase('investments', investments);
-                        updateConnectionStatus('online', 'Investment saved via collection update');
-                    } catch (retryError) {
-                        console.error('Collection save also failed:', retryError);
-                        updateConnectionStatus('offline', 'All Firebase saves failed');
+                        const batch = db.batch();
+                        const docRef = db.collection('investments').doc(slotId);
+                        batch.set(docRef, investmentData, { merge: true });
+                        await batch.commit();
+                        firebaseSaveSuccess = true;
+                        updateConnectionStatus('online', 'Investment saved via batch');
+                        console.log('✅ Investment saved to Firebase via batch:', slotId);
+                    } catch (batchError) {
+                        console.error('❌ Batch Firebase save failed:', batchError);
+                        
+                        // Method 3: Collection-wide update
+                        try {
+                            const collectionRef = db.collection('investments');
+                            await collectionRef.doc(slotId).set(investmentData);
+                            firebaseSaveSuccess = true;
+                            updateConnectionStatus('online', 'Investment saved via collection');
+                            console.log('✅ Investment saved to Firebase via collection:', slotId);
+                        } catch (collectionError) {
+                            console.error('❌ All Firebase save methods failed:', collectionError);
+                            updateConnectionStatus('offline', 'Firebase save failed - data saved locally');
+                        }
                     }
                 }
             } else {
-                console.log('Firebase not configured, investment saved locally only');
-                updateConnectionStatus('offline', 'Firebase not available - saved locally');
+                console.log('⚠️ Firebase not configured, investment saved locally only');
+                updateConnectionStatus('offline', 'Firebase not available');
             }
             
             // Process affiliate commission if affiliate number provided
@@ -1423,12 +1445,15 @@
                 await processAffiliateCommission(affiliateNumber, investmentData, slotId);
             }
             
-            // Update slot appearance
-            const slot = document.querySelector(`[data-slot-id="${slotId}"]`);
-            updateSlotAppearance(slot, slotId);
-            
             closeModal();
-            updateDashboard();
+            
+            // Show appropriate success message
+            if (firebaseSaveSuccess) {
+                console.log('🎉 Investment successfully saved to Firebase database');
+            } else {
+                console.log('⚠️ Investment saved locally but not to Firebase');
+                alert('⚠️ Investment saved locally but failed to sync with Firebase database. Please check your internet connection.');
+            }
             
             // Show payment instructions based on selected payment mode
             showPaymentInstructionsModal(paymentMode);
@@ -2151,20 +2176,53 @@
                         const affiliateEmail = Object.keys(affiliates).find(email => affiliates[email].affiliateNumber === investment.affiliateNumber);
                         if (affiliateEmail) {
                             affiliates[affiliateEmail] = affiliate;
-                            await saveData('affiliates', affiliates);
+                            
+                            // Save affiliate data to Firebase
+                            if (isFirebaseConfigured && db) {
+                                try {
+                                    await db.collection('affiliates').doc(affiliateEmail).set(affiliate, { merge: true });
+                                    console.log('✅ Affiliate data saved to Firebase:', affiliateEmail);
+                                } catch (error) {
+                                    console.error('❌ Failed to save affiliate to Firebase:', error);
+                                }
+                            }
                         }
                     }
                 }
             }
             
-            // Save to Firebase
-            try {
-                await saveData('investments', investments);
-                updateConnectionStatus('online', 'Investment approved and saved');
-            } catch (error) {
-                console.error('Failed to save approved investment to Firebase:', error);
-                updateConnectionStatus('offline', 'Approval saved locally only');
-                alert('⚠️ Investment approved but failed to save to Firebase. Changes may not persist.');
+            // Save investment to Firebase with multiple methods
+            let firebaseSaveSuccess = false;
+            
+            if (isFirebaseConfigured && db) {
+                updateConnectionStatus('loading', 'Saving approved investment to Firebase...');
+                
+                // Method 1: Direct document save
+                try {
+                    await db.collection('investments').doc(slotId).set(investment, { merge: true });
+                    firebaseSaveSuccess = true;
+                    updateConnectionStatus('online', 'Investment approved and saved to Firebase');
+                    console.log('✅ Approved investment saved to Firebase:', slotId);
+                } catch (error) {
+                    console.error('❌ Direct Firebase save failed for approval:', error);
+                    
+                    // Method 2: Batch write
+                    try {
+                        const batch = db.batch();
+                        const docRef = db.collection('investments').doc(slotId);
+                        batch.set(docRef, investment, { merge: true });
+                        await batch.commit();
+                        firebaseSaveSuccess = true;
+                        updateConnectionStatus('online', 'Investment approved via batch save');
+                        console.log('✅ Approved investment saved via batch:', slotId);
+                    } catch (batchError) {
+                        console.error('❌ Batch save failed for approval:', batchError);
+                        updateConnectionStatus('offline', 'Approval saved locally only');
+                    }
+                }
+            } else {
+                console.log('⚠️ Firebase not configured, approval saved locally only');
+                updateConnectionStatus('offline', 'Firebase not available');
             }
             
             const slot = document.querySelector(`[data-slot-id="${slotId}"]`);
@@ -2172,7 +2230,12 @@
             
             loadAdminInvestments();
             updateDashboard();
-            alert('Investment approved successfully! Affiliate commission processed.');
+            
+            if (firebaseSaveSuccess) {
+                alert('✅ Investment approved successfully and saved to Firebase! Affiliate commission processed.');
+            } else {
+                alert('⚠️ Investment approved locally but failed to save to Firebase. Please check your internet connection.');
+            }
         }
 
         async function disapproveInvestment(slotId) {
@@ -2193,21 +2256,55 @@
                         const affiliateEmail = Object.keys(affiliates).find(email => affiliates[email].affiliateNumber === investment.affiliateNumber);
                         if (affiliateEmail) {
                             affiliates[affiliateEmail] = affiliate;
-                            await saveData('affiliates', affiliates);
+                            
+                            // Save affiliate data to Firebase
+                            if (isFirebaseConfigured && db) {
+                                try {
+                                    await db.collection('affiliates').doc(affiliateEmail).set(affiliate, { merge: true });
+                                    console.log('✅ Affiliate data updated in Firebase after disapproval:', affiliateEmail);
+                                } catch (error) {
+                                    console.error('❌ Failed to update affiliate in Firebase:', error);
+                                }
+                            }
                         }
                     }
                 }
             }
             
+            // Remove investment from local storage
             delete investments[slotId];
-            await saveData('investments', investments);
+            
+            // Remove from Firebase
+            let firebaseDeleteSuccess = false;
+            
+            if (isFirebaseConfigured && db) {
+                updateConnectionStatus('loading', 'Removing investment from Firebase...');
+                
+                try {
+                    await db.collection('investments').doc(slotId).delete();
+                    firebaseDeleteSuccess = true;
+                    updateConnectionStatus('online', 'Investment removed from Firebase');
+                    console.log('✅ Investment removed from Firebase:', slotId);
+                } catch (error) {
+                    console.error('❌ Failed to remove investment from Firebase:', error);
+                    updateConnectionStatus('offline', 'Removal saved locally only');
+                }
+            } else {
+                console.log('⚠️ Firebase not configured, removal saved locally only');
+                updateConnectionStatus('offline', 'Firebase not available');
+            }
             
             const slot = document.querySelector(`[data-slot-id="${slotId}"]`);
             updateSlotAppearance(slot, slotId);
             
             loadAdminInvestments();
             updateDashboard();
-            alert('Investment disapproved and removed.');
+            
+            if (firebaseDeleteSuccess) {
+                alert('✅ Investment disapproved and removed from Firebase database.');
+            } else {
+                alert('⚠️ Investment disapproved locally but failed to remove from Firebase. Please check your internet connection.');
+            }
         }
 
         function confirmRevokeInvestment(slotId) {
@@ -2843,10 +2940,34 @@
                 withdrawalHistory: []
             };
             
+            // Add to local storage
             affiliates[email] = affiliateData;
-            await saveData('affiliates', affiliates);
             
-            alert(`🎉 Affiliate registration successful!\n\nYour Affiliate Number: ${affiliateData.affiliateNumber}\n\nSave this number - you'll need it to:\n• Access your affiliate dashboard\n• Earn 5% commission on referrals\n\nShare this number with people you refer!`);
+            // Save to Firebase
+            let firebaseSaveSuccess = false;
+            
+            if (isFirebaseConfigured && db) {
+                updateConnectionStatus('loading', 'Saving affiliate to Firebase...');
+                
+                try {
+                    await db.collection('affiliates').doc(email).set(affiliateData, { merge: true });
+                    firebaseSaveSuccess = true;
+                    updateConnectionStatus('online', 'Affiliate saved to Firebase');
+                    console.log('✅ Affiliate saved to Firebase:', email);
+                } catch (error) {
+                    console.error('❌ Failed to save affiliate to Firebase:', error);
+                    updateConnectionStatus('offline', 'Affiliate saved locally only');
+                }
+            } else {
+                console.log('⚠️ Firebase not configured, affiliate saved locally only');
+                updateConnectionStatus('offline', 'Firebase not available');
+            }
+            
+            if (firebaseSaveSuccess) {
+                alert(`🎉 Affiliate registration successful and saved to Firebase!\n\nYour Affiliate Number: ${affiliateData.affiliateNumber}\n\nSave this number - you'll need it to:\n• Access your affiliate dashboard\n• Earn 5% commission on referrals\n\nShare this number with people you refer!`);
+            } else {
+                alert(`🎉 Affiliate registration successful (saved locally)!\n\nYour Affiliate Number: ${affiliateData.affiliateNumber}\n\n⚠️ Note: Failed to save to Firebase database. Please check your internet connection.\n\nSave this number - you'll need it to:\n• Access your affiliate dashboard\n• Earn 5% commission on referrals\n\nShare this number with people you refer!`);
+            }
             
             closeAffiliateModal();
         });
@@ -3256,5 +3377,5 @@
             alert('✅ All affiliate data cleared successfully!');
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985deca715739891',t:'MTc1OTAwNjc2My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985e036322499d21',t:'MTc1OTAwNzY5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
