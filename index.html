@@ -806,7 +806,7 @@
         // ===== DATA STORAGE =====
         let investments = {};
         let affiliates = {};
-        let adminCredentials = { username: "ric3rd", password: "nacs2512364" };
+        let adminCredentials = { username: "admin", password: "123" };
         let isAdminLoggedIn = false;
         let currentPhotoSlot = null;
         let isOnline = false;
@@ -933,13 +933,19 @@
             
             // Load from Firebase
             try {
-                const [investmentData, affiliateData] = await Promise.all([
+                const [investmentData, affiliateData, adminData] = await Promise.all([
                     loadFromFirebase('investments'),
-                    loadFromFirebase('affiliates')
+                    loadFromFirebase('affiliates'),
+                    loadFromFirebase('admin')
                 ]);
                 
                 investments = investmentData || {};
                 affiliates = affiliateData || {};
+                
+                // Load admin credentials from Firebase if they exist
+                if (adminData && adminData.credentials) {
+                    adminCredentials = adminData.credentials;
+                }
                 
                 updateConnectionStatus('online', 'Connected to Firebase');
                 
@@ -1513,7 +1519,7 @@
                 document.getElementById('adminPassword').value = '';
                 showAdminTab('investments');
             } else {
-                alert('Invalid credentials! Default: ric3rd / nacs2512364');
+                alert('Invalid credentials!');
                 document.getElementById('adminUsername').value = '';
                 document.getElementById('adminPassword').value = '';
             }
@@ -2785,13 +2791,18 @@
                 return;
             }
             
+            // Update credentials
             adminCredentials.username = newUsername;
             adminCredentials.password = newPassword;
             
-            // In a real application, you would save this to a secure backend
-            // For now, we'll just update the local variable
-            
-            alert(`✅ Admin credentials updated successfully!\n\nNew Username: ${newUsername}\nNew Password: ${newPassword}\n\nPlease remember your new credentials!`);
+            // Save to Firebase
+            try {
+                await saveToFirebase('admin', 'credentials', adminCredentials);
+                alert(`✅ Admin credentials updated successfully!\n\nNew Username: ${newUsername}\nNew Password: ${newPassword}\n\nPlease remember your new credentials!`);
+            } catch (error) {
+                console.error('Failed to save admin credentials:', error);
+                alert('⚠️ Credentials updated locally but failed to save to Firebase. Changes may not persist after refresh.');
+            }
             
             // Clear the form
             document.getElementById('newAdminUsername').value = '';
@@ -3006,5 +3017,5 @@
             alert('✅ All affiliate data cleared successfully!');
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985d796a300a9d21',t:'MTc1OTAwMjA0Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985dac55a3259d22',t:'MTc1OTAwNDEyOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
