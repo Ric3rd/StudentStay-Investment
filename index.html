@@ -677,13 +677,13 @@
         // ===== FIREBASE CONFIGURATION =====
         // Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyBvOoF5QwX-O2QDQxQQQQQQQQQQQQQQQQQ",
-            authDomain: "studentstay-investment.firebaseapp.com",
-            databaseURL: "https://studentstay-investment-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "studentstay-investment",
-            storageBucket: "studentstay-investment.appspot.com",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abcdef1234567890abcdef"
+            apiKey: "AIzaSyCkc3FBjQDUeKxOjG0BnoXwGjssurr9xNc",
+            authDomain: "studentstay-997a0.firebaseapp.com",
+            projectId: "studentstay-997a0",
+            storageBucket: "studentstay-997a0.firebasestorage.app",
+            messagingSenderId: "471410985399",
+            appId: "1:471410985399:web:b765f88c1f4e4e77ab0032",
+            measurementId: "G-HS1NRL5WL6"
         };
 
         // Initialize Firebase
@@ -2107,38 +2107,4 @@
                                         </div>
                                         <p class="text-sm text-gray-600">Investment: ₱${ref.investmentAmount.toLocaleString()}</p>
                                         <p class="text-sm text-gray-600">Your Commission: ₱${ref.commission.toLocaleString()}</p>
-                                        <p class="text-xs text-gray-400">Date: ${new Date(ref.date).toLocaleDateString()}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-            } else {
-                referralsList.innerHTML = `
-                    <div class="bg-gray-50 border rounded-lg p-6 text-center">
-                        <p class="text-gray-500">No referrals yet. Start sharing your affiliate number to earn commissions!</p>
-                    </div>
-                `;
-            }
-            
-            // Show dashboard content
-            document.getElementById('affiliateDashboardLogin').classList.add('hidden');
-            document.getElementById('affiliateDashboardContent').classList.remove('hidden');
-        }
-
-        function copyAffiliateNumber() {
-            const numberField = document.getElementById('affiliateNumberToCopy');
-            numberField.select();
-            numberField.setSelectionRange(0, 99999); // For mobile devices
-            
-            try {
-                document.execCommand('copy');
-                alert('✅ Affiliate number copied to clipboard!');
-            } catch (err) {
-                alert('❌ Failed to copy. Please manually copy: ' + numberField.value);
-            }
-        }
-    </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985ce3e513979894',t:'MTc1ODk5NTkxOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
-</html>
+                                        <p class="text-xs text-gray-400">Date: ${new Date(ref.date).toLocaleDate<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985d07ec809f9d21',t:'MTc1ODk5NzM5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
