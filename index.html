@@ -122,9 +122,6 @@
             
             <!-- Quick Action Buttons -->
             <div class="flex justify-center gap-4 mb-6">
-                <button onclick="showBudgetRecommendation()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
-                    💡 Find My Investment
-                </button>
                 <button onclick="showPortfolioDashboard()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                     💼 My Portfolio
                 </button>
@@ -146,37 +143,7 @@
                 </a>
             </div>
             
-            <!-- Investment Benefits Statement -->
-            <div class="bg-gradient-to-r from-yellow-400/20 to-orange-400/20 backdrop-blur-sm rounded-xl p-6 max-w-5xl mx-auto mb-6 border border-yellow-400/30">
-                <div class="text-center">
-                    <h2 class="text-2xl font-bold gold-accent mb-4">🏢 INVEST IN REAL PROPERTY, EARN REAL DIVIDENDS 🏢</h2>
-                    <p class="text-lg font-semibold mb-3">This is NOT a virtual investment - You're investing in an ACTUAL BOARDING HOUSE!</p>
-                    <div class="grid md:grid-cols-2 gap-4 text-left">
-                        <div class="bg-white/10 rounded-lg p-4">
-                            <h3 class="font-bold text-yellow-300 mb-2">✅ GUARANTEED REAL PROPERTY</h3>
-                            <ul class="text-sm space-y-1">
-                                <li>• Physical boarding house construction</li>
-                                <li>• Tangible real estate investment</li>
-                                <li>• Legal property documentation</li>
-                                <li>• Prime location for students</li>
-                            </ul>
-                        </div>
-                        <div class="bg-white/10 rounded-lg p-4">
-                            <h3 class="font-bold text-green-300 mb-2">💰 MONTHLY DIVIDEND PAYMENTS</h3>
-                            <ul class="text-sm space-y-1">
-                                <li>• Regular rental income distribution</li>
-                                <li>• Paid directly to your chosen account</li>
-                                <li>• Transparent profit sharing system</li>
-                                <li>• Long-term passive income stream</li>
-                                <li>• ⚠️ Dividends start AFTER building completion</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <p class="text-lg font-bold mt-4 text-yellow-200">
-                        🎯 SECURE YOUR FINANCIAL FUTURE - INVEST IN REAL PROPERTY TODAY! 🎯
-                    </p>
-                </div>
-            </div>
+
             
             <div class="bg-white/10 backdrop-blur-sm rounded-lg p-6 max-w-4xl mx-auto">
                 <h2 class="text-2xl font-semibold mb-4">Investment Overview</h2>
@@ -208,12 +175,12 @@
     <!-- Building Visualization -->
     <main class="container mx-auto px-6 pb-12">
         <div class="building-container max-w-6xl mx-auto">
-            <h2 class="text-white text-3xl font-bold text-center mb-8">Select Your Investment Slot</h2>
+            <h2 class="text-white text-3xl font-bold text-center mb-8">Select Your Investment Unit</h2>
             
             <!-- Loading indicator -->
             <div id="buildingLoading" class="text-center py-12">
                 <div class="loading-spinner"></div>
-                <p class="text-white mt-4">Loading investment slots...</p>
+                <p class="text-white mt-4">Loading investment units...</p>
             </div>
             
             <!-- Building floors will be generated here -->
@@ -274,15 +241,15 @@
             <div class="grid md:grid-cols-4 gap-6 text-center">
                 <div class="bg-green-500/20 rounded-lg p-4">
                     <div class="text-3xl font-bold text-green-300" id="availableSlots">-</div>
-                    <div class="text-sm text-white">Available Slots</div>
+                    <div class="text-sm text-white">Available Units</div>
                 </div>
                 <div class="bg-yellow-500/20 rounded-lg p-4">
                     <div class="text-3xl font-bold text-yellow-300" id="pendingSlots">-</div>
-                    <div class="text-sm text-white">Pending Slots</div>
+                    <div class="text-sm text-white">Pending Units</div>
                 </div>
                 <div class="bg-red-500/20 rounded-lg p-4">
                     <div class="text-3xl font-bold text-red-300" id="occupiedSlots">-</div>
-                    <div class="text-sm text-white">Occupied Slots</div>
+                    <div class="text-sm text-white">Occupied Units</div>
                 </div>
                 <div class="bg-blue-500/20 rounded-lg p-4">
                     <div class="text-3xl font-bold text-blue-300" id="totalRaised">₱-</div>
@@ -523,7 +490,7 @@
                     </div>
                     <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
                         <div class="text-2xl font-bold text-purple-800" id="totalSlots">0</div>
-                        <div class="text-sm text-purple-600">Investment Slots</div>
+                        <div class="text-sm text-purple-600">Investment Units</div>
                     </div>
                 </div>
                 
@@ -688,6 +655,51 @@
                     <button id="investNowBtn" onclick="proceedToInvestment()" class="flex-1 bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition-colors hidden">
                         🚀 Invest Now
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Welcome Popup Modal -->
+    <div id="welcomeModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="form-container max-w-4xl w-full p-8 max-h-[90vh] overflow-y-auto">
+            <div class="bg-gradient-to-r from-yellow-400/20 to-orange-400/20 backdrop-blur-sm rounded-xl p-6 border border-yellow-400/30 animate-pulse">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4">🏢 INVEST IN REAL PROPERTY, EARN REAL DIVIDENDS 🏢</h2>
+                    <p class="text-xl font-semibold mb-4">This is NOT a virtual investment - You're investing in an ACTUAL BOARDING HOUSE!</p>
+                    <div class="grid md:grid-cols-2 gap-4 text-left mb-6">
+                        <div class="bg-white/10 rounded-lg p-4">
+                            <h3 class="font-bold text-yellow-600 mb-2">✅ GUARANTEED REAL PROPERTY</h3>
+                            <ul class="text-sm space-y-1 text-gray-700">
+                                <li>• Physical boarding house construction</li>
+                                <li>• Tangible real estate investment</li>
+                                <li>• Legal property documentation</li>
+                                <li>• Prime location for students</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white/10 rounded-lg p-4">
+                            <h3 class="font-bold text-green-600 mb-2">💰 MONTHLY DIVIDEND PAYMENTS</h3>
+                            <ul class="text-sm space-y-1 text-gray-700">
+                                <li>• Regular rental income distribution</li>
+                                <li>• Paid directly to your chosen account</li>
+                                <li>• Transparent profit sharing system</li>
+                                <li>• Long-term passive income stream</li>
+                                <li>• ⚠️ Dividends start AFTER building completion</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <p class="text-xl font-bold mb-6 text-yellow-600">
+                        🎯 SECURE YOUR FINANCIAL FUTURE - INVEST IN REAL PROPERTY TODAY! 🎯
+                    </p>
+                    
+                    <div class="flex gap-4 justify-center">
+                        <button onclick="closeWelcomeModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg font-bold text-lg transition-colors">
+                            🏠 VIEW INVESTMENT UNITS
+                        </button>
+                        <button onclick="showBudgetRecommendationFromWelcome()" class="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-lg font-bold text-lg transition-colors">
+                            💡 GET INVESTMENT RECOMMENDATION
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1000,7 +1012,27 @@
         // ===== INITIALIZATION =====
         document.addEventListener('DOMContentLoaded', function() {
             initializeData();
+            // Show welcome modal on page load
+            showWelcomeModal();
         });
+
+        // ===== WELCOME MODAL FUNCTIONS =====
+        function showWelcomeModal() {
+            const modal = document.getElementById('welcomeModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeWelcomeModal() {
+            const modal = document.getElementById('welcomeModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function showBudgetRecommendationFromWelcome() {
+            closeWelcomeModal();
+            showBudgetRecommendation();
+        }
 
         // Initialize building
         function initializeBuilding() {
@@ -1096,13 +1128,62 @@
         }
 
         function openInvestmentForm(slotKey, slot) {
+            const slotNumber = generateSlotNumber(slotKey);
+            const investmentAmount = parseInt(slot.dataset.price);
+            const floorName = slot.dataset.floorName;
+            
             document.getElementById('slotId').value = slotKey;
-            document.getElementById('floorInfo').value = `${slot.dataset.floorName} Floor`;
-            document.getElementById('investmentAmount').value = slot.dataset.price;
+            document.getElementById('floorInfo').value = `${floorName} Floor`;
+            document.getElementById('investmentAmount').value = investmentAmount;
+            
+            // Update the form header with investment details
+            updateInvestmentFormHeader(slotNumber, floorName, investmentAmount);
             
             const modal = document.getElementById('investmentModal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+        }
+
+        function generateSlotNumber(slotKey) {
+            // Extract floor and unit number from slotKey (e.g., "floor8_5" -> "F8-05")
+            const parts = slotKey.split('_');
+            const floorNum = parts[0].replace('floor', '');
+            const unitNum = parts[1].padStart(2, '0');
+            return `F${floorNum}-${unitNum}`;
+        }
+
+        function updateInvestmentFormHeader(slotNumber, floorName, amount) {
+            const existingHeader = document.querySelector('#investmentFormHeader');
+            if (existingHeader) {
+                existingHeader.remove();
+            }
+            
+            const formContainer = document.querySelector('#investmentModal .form-container');
+            const formTitle = formContainer.querySelector('h3');
+            
+            const headerDiv = document.createElement('div');
+            headerDiv.id = 'investmentFormHeader';
+            headerDiv.className = 'bg-gradient-to-r from-purple-100 to-blue-100 border border-purple-200 rounded-lg p-4 mb-6';
+            headerDiv.innerHTML = `
+                <div class="text-center">
+                    <div class="text-lg font-bold text-purple-800 mb-2">📍 Investment Details</div>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="bg-white/50 rounded-lg p-3">
+                            <div class="text-sm text-purple-600 font-medium">Unit Number</div>
+                            <div class="text-xl font-bold text-purple-800">${slotNumber}</div>
+                        </div>
+                        <div class="bg-white/50 rounded-lg p-3">
+                            <div class="text-sm text-purple-600 font-medium">Investment Amount</div>
+                            <div class="text-xl font-bold text-green-600">₱${amount.toLocaleString()}</div>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-sm text-purple-700">
+                        <strong>${floorName} Floor</strong> - Premium boarding house investment unit
+                    </div>
+                </div>
+            `;
+            
+            formTitle.insertAdjacentElement('afterend', headerDiv);
         }
 
         function closeModal() {
@@ -1265,6 +1346,7 @@
 
         async function saveInvestment(formData, slotId, photoDataUrl) {
             const affiliateNumber = formData.get('affiliateNumber');
+            const slotNumber = generateSlotNumber(slotId);
             
             const investmentData = {
                 fullName: formData.get('fullName'),
@@ -1279,6 +1361,7 @@
                 photo: photoDataUrl,
                 floorInfo: formData.get('floorInfo'),
                 investmentAmount: formData.get('investmentAmount'),
+                slotNumber: slotNumber,
                 status: 'pending',
                 timestamp: new Date().toISOString(),
                 dividendEarned: 0,
@@ -1475,7 +1558,7 @@
                                     <div class="flex-1">
                                         <div class="flex items-center gap-2 mb-2">
                                             <span class="font-semibold text-lg">${investment.fullName}</span>
-                                            <span class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">${slotId}</span>
+                                            <span class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded font-mono">${investment.slotNumber || generateSlotNumber(slotId)}</span>
                                             ${investment.affiliateNumber ? `<span class="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">Ref: ${investment.affiliateNumber}</span>` : ''}
                                         </div>
                                         <p class="text-sm text-gray-600">${investment.floorInfo} | Investment: ₱${parseInt(investment.investmentAmount).toLocaleString()}</p>
@@ -1547,7 +1630,7 @@
                                     <div class="flex-1">
                                         <div class="flex items-center gap-2 mb-2">
                                             <span class="font-semibold text-lg">${investment.fullName}</span>
-                                            <span class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">${slotId}</span>
+                                            <span class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded font-mono">${investment.slotNumber || generateSlotNumber(slotId)}</span>
                                             ${investment.affiliateNumber ? `<span class="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">Affiliate: ${investment.affiliateNumber}</span>` : ''}
                                         </div>
                                         <p class="text-sm text-gray-600">${investment.floorInfo} | Investment: ₱${parseInt(investment.investmentAmount).toLocaleString()}</p>
@@ -2169,14 +2252,14 @@
             // Load investment details
             const container = document.getElementById('portfolioInvestments');
             container.innerHTML = `
-                <h4 class="text-lg font-bold mb-4">📋 Your Investment Slots</h4>
+                <h4 class="text-lg font-bold mb-4">📋 Your Investment Units</h4>
                 <div class="space-y-4">
                     ${userInvestments.map(([slotId, investment]) => `
                         <div class="bg-white border rounded-lg p-4">
                             <div class="flex justify-between items-start mb-3">
                                 <div class="flex-1">
                                     <div class="flex items-center gap-2 mb-2">
-                                        <span class="font-semibold text-lg">${slotId}</span>
+                                        <span class="font-semibold text-lg font-mono">${investment.slotNumber || generateSlotNumber(slotId)}</span>
                                         <span class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">${investment.floorInfo}</span>
                                     </div>
                                     <p class="text-sm text-gray-600">Investment: ₱${parseInt(investment.investmentAmount).toLocaleString()}</p>
@@ -2327,7 +2410,7 @@
                                 </div>
                                 <div class="text-right">
                                     <div class="text-2xl font-bold text-green-800">₱${bestOption.price.toLocaleString()}</div>
-                                    <div class="text-sm text-green-600">${bestOption.availableCount} slots available</div>
+                                    <div class="text-sm text-green-600">${bestOption.availableCount} units available</div>
                                 </div>
                             </div>
                             
@@ -2347,7 +2430,7 @@
                                         <li>• Investment: ₱${bestOption.price.toLocaleString()}</li>
                                         <li>• Remaining budget: ₱${(budget - bestOption.price).toLocaleString()}</li>
                                         <li>• Floor level: ${bestOption.name}</li>
-                                        <li>• Available slots: ${bestOption.availableCount}</li>
+                                        <li>• Available units: ${bestOption.availableCount}</li>
                                     </ul>
                                 </div>
                             </div>
@@ -2364,7 +2447,7 @@
                                             <span class="text-2xl">${floor.icon}</span>
                                             <div>
                                                 <div class="font-bold text-blue-800">${floor.name} Floor</div>
-                                                <div class="text-sm text-blue-600">${floor.availableCount} slots available</div>
+                                                <div class="text-sm text-blue-600">${floor.availableCount} units available</div>
                                             </div>
                                         </div>
                                         <div class="text-right">
@@ -2384,7 +2467,7 @@
                         </div>
                         <p class="text-yellow-700 text-sm">
                             ${budget >= 50000 ? 
-                                'Excellent! You can afford our premium Penthouse slots with the highest dividend potential.' :
+                                'Excellent! You can afford our premium Penthouse units with the highest dividend potential.' :
                                 budget >= 20000 ?
                                 'Great budget! Consider the higher floors for better dividend returns.' :
                                 budget >= 5000 ?
@@ -2396,7 +2479,7 @@
                     
                     <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
                         <div class="text-gray-700 mb-2">
-                            <strong>Total Available Slots in Your Budget:</strong> ${totalAvailable}
+                            <strong>Total Available Units in Your Budget:</strong> ${totalAvailable}
                         </div>
                         <div class="text-sm text-gray-600">
                             Click "Invest Now" to proceed with the <strong>${bestOption.name} Floor</strong> investment
@@ -2414,7 +2497,7 @@
 
         function proceedToInvestment() {
             if (recommendedSlots.length === 0) {
-                alert('No available slots found for your budget. Please try a different amount.');
+                alert('No available units found for your budget. Please try a different amount.');
                 return;
             }
             
@@ -2441,10 +2524,10 @@
                 
                 // Show success message
                 setTimeout(() => {
-                    alert(`🎯 Perfect! We've found you a ${recommendedSlot.floorName} Floor slot.\n\nSlot: ${recommendedSlot.slotId}\nInvestment: ₱${recommendedSlot.price.toLocaleString()}\n\nThe investment form will open shortly!`);
+                    alert(`🎯 Perfect! We've found you a ${recommendedSlot.floorName} Floor unit.\n\nUnit: ${recommendedSlot.slotId}\nInvestment: ₱${recommendedSlot.price.toLocaleString()}\n\nThe investment form will open shortly!`);
                 }, 500);
             } else {
-                alert('Slot not found. Please try selecting a slot manually from the building.');
+                alert('Unit not found. Please try selecting a unit manually from the building.');
             }
         }
 
@@ -2911,5 +2994,5 @@
             alert('✅ All affiliate data cleared successfully!');
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985d3d1fd6a09d1f',t:'MTc1ODk5OTU3My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985d6f3d64a29d21',t:'MTc1OTAwMTYyNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
