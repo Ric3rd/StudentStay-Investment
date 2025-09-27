@@ -675,14 +675,15 @@
 
     <script>
         // ===== FIREBASE CONFIGURATION =====
-        // Firebase configuration - replace with your own values
+        // Firebase configuration
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY_HERE",
-            authDomain: "your-project.firebaseapp.com",
-            projectId: "your-project-id",
-            storageBucket: "your-project.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef123456"
+            apiKey: "AIzaSyBvOoF5QwX-O2QDQxQQQQQQQQQQQQQQQQQ",
+            authDomain: "studentstay-investment.firebaseapp.com",
+            databaseURL: "https://studentstay-investment-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "studentstay-investment",
+            storageBucket: "studentstay-investment.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef1234567890abcdef"
         };
 
         // Initialize Firebase
@@ -699,20 +700,8 @@
 
         // ===== FIREBASE FUNCTIONS =====
         
-        // Check if Firebase is properly configured
-        function isApiConfigured() {
-            return firebaseConfig.apiKey !== 'YOUR_API_KEY_HERE' && 
-                   firebaseConfig.projectId !== 'YOUR_PROJECT_ID' &&
-                   firebaseConfig.apiKey && firebaseConfig.projectId;
-        }
-
         // Initialize Firebase
         function initializeFirebase() {
-            if (!isApiConfigured()) {
-                console.log('Firebase not configured, using localStorage');
-                return false;
-            }
-
             try {
                 firebase.initializeApp(firebaseConfig);
                 db = firebase.firestore();
@@ -818,81 +807,61 @@
 
         // Initialize data loading
         async function initializeData() {
-            updateConnectionStatus('loading', 'Initializing...');
+            updateConnectionStatus('loading', 'Connecting to Firebase...');
             
-            // Initialize Firebase first
+            // Initialize Firebase
             const firebaseInitialized = initializeFirebase();
             
             if (!firebaseInitialized) {
-                // Use localStorage as fallback
-                investments = JSON.parse(localStorage.getItem('investments') || '{}');
-                affiliates = JSON.parse(localStorage.getItem('affiliates') || '{}');
-                adminCredentials = JSON.parse(localStorage.getItem('adminCredentials') || '{"username": "ric3rd", "password": "nacs2512364"}');
-                
-                updateConnectionStatus('offline', 'Demo mode - using local storage');
-            } else {
-                // Load from Firebase
-                try {
-                    const [investmentData, affiliateData] = await Promise.all([
-                        loadFromFirebase('investments'),
-                        loadFromFirebase('affiliates')
-                    ]);
-                    
-                    if (investmentData) {
-                        investments = investmentData;
-                    } else {
-                        investments = JSON.parse(localStorage.getItem('investments') || '{}');
-                    }
-                    
-                    if (affiliateData) {
-                        affiliates = affiliateData;
-                    } else {
-                        affiliates = JSON.parse(localStorage.getItem('affiliates') || '{}');
-                    }
-                    
-                    updateConnectionStatus('online', 'Connected to Firebase');
-                } catch (error) {
-                    console.error('Failed to load from Firebase:', error);
-                    // Fallback to localStorage
-                    investments = JSON.parse(localStorage.getItem('investments') || '{}');
-                    affiliates = JSON.parse(localStorage.getItem('affiliates') || '{}');
-                    updateConnectionStatus('offline', 'Connection failed - using local storage');
-                }
+                updateConnectionStatus('offline', 'Firebase connection failed');
+                alert('❌ Firebase connection failed. Please check your configuration.');
+                return;
             }
             
-            // Initialize the building after data is loaded
-            initializeBuilding();
-            updateDashboard();
+            // Load from Firebase
+            try {
+                const [investmentData, affiliateData] = await Promise.all([
+                    loadFromFirebase('investments'),
+                    loadFromFirebase('affiliates')
+                ]);
+                
+                investments = investmentData || {};
+                affiliates = affiliateData || {};
+                
+                updateConnectionStatus('online', 'Connected to Firebase');
+                
+                // Initialize the building after data is loaded
+                initializeBuilding();
+                updateDashboard();
+            } catch (error) {
+                console.error('Failed to load from Firebase:', error);
+                updateConnectionStatus('offline', 'Failed to load data from Firebase');
+                alert('❌ Failed to load data from Firebase. Please check your internet connection.');
+            }
         }
 
-        // Save data with fallback to localStorage
+        // Save data to Firebase
         async function saveData(dataType, data) {
-            // Always save to localStorage as backup
-            localStorage.setItem(dataType, JSON.stringify(data));
-            
-            // Try to save to Firebase if configured
-            if (isFirebaseConfigured) {
-                await saveCollectionToFirebase(dataType, data);
+            if (!isFirebaseConfigured) {
+                throw new Error('Firebase not configured');
             }
+            
+            await saveCollectionToFirebase(dataType, data);
         }
 
         // Save single document to Firebase
         async function saveSingleData(collection, docId, data) {
-            // Always save to localStorage as backup
-            const existingData = JSON.parse(localStorage.getItem(collection) || '{}');
-            existingData[docId] = data;
-            localStorage.setItem(collection, JSON.stringify(existingData));
-            
-            // Try to save to Firebase if configured
-            if (isFirebaseConfigured) {
-                await saveToFirebase(collection, docId, data);
+            if (!isFirebaseConfigured) {
+                throw new Error('Firebase not configured');
             }
+            
+            await saveToFirebase(collection, docId, data);
         }
 
         // Refresh data from Firebase
         async function refreshData() {
             if (!isFirebaseConfigured) {
-                alert('Firebase not configured. Using local data.');
+                alert('❌ Firebase not connected. Cannot refresh data.');
                 return;
             }
             
@@ -904,13 +873,8 @@
                     loadFromFirebase('affiliates')
                 ]);
                 
-                if (investmentData) {
-                    investments = investmentData;
-                }
-                
-                if (affiliateData) {
-                    affiliates = affiliateData;
-                }
+                investments = investmentData || {};
+                affiliates = affiliateData || {};
                 
                 // Refresh UI
                 initializeBuilding();
@@ -1939,5 +1903,242 @@
 
         // ===== PORTFOLIO FUNCTIONS =====
         function showPortfolioDashboard() {
-            const modal = document.getElementById('portfol
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985ccee5744f9894',t:'MTc1ODk5NTA1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+            const modal = document.getElementById('portfolioModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Reset to login view
+            document.getElementById('portfolioLogin').classList.remove('hidden');
+            document.getElementById('portfolioContent').classList.add('hidden');
+            document.getElementById('portfolioEmail').value = '';
+        }
+
+        function closePortfolioModal() {
+            const modal = document.getElementById('portfolioModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function loadPortfolio() {
+            const email = document.getElementById('portfolioEmail').value.trim();
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+            
+            // Find investments for this email
+            const userInvestments = Object.entries(investments).filter(([_, investment]) => 
+                investment.email.toLowerCase() === email.toLowerCase() && investment.status === 'approved'
+            );
+            
+            if (userInvestments.length === 0) {
+                alert('No approved investments found for this email address');
+                return;
+            }
+            
+            // Calculate totals
+            let totalInvested = 0;
+            let totalDividendEarned = 0;
+            let totalDividendWithdrawn = 0;
+            
+            userInvestments.forEach(([_, investment]) => {
+                totalInvested += parseInt(investment.investmentAmount);
+                totalDividendEarned += (investment.dividendEarned || 0);
+                totalDividendWithdrawn += (investment.dividendWithdrawn || 0);
+            });
+            
+            // Update summary
+            document.getElementById('totalInvested').textContent = `₱${totalInvested.toLocaleString()}`;
+            document.getElementById('dividendEarned').textContent = `₱${totalDividendEarned.toLocaleString()}`;
+            document.getElementById('dividendWithdrawn').textContent = `₱${totalDividendWithdrawn.toLocaleString()}`;
+            document.getElementById('totalSlots').textContent = userInvestments.length;
+            
+            // Load investment details
+            const container = document.getElementById('portfolioInvestments');
+            container.innerHTML = `
+                <h4 class="text-lg font-bold mb-4">📋 Your Investment Slots</h4>
+                <div class="space-y-4">
+                    ${userInvestments.map(([slotId, investment]) => `
+                        <div class="bg-white border rounded-lg p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="font-semibold text-lg">${slotId}</span>
+                                        <span class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">${investment.floorInfo}</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600">Investment: ₱${parseInt(investment.investmentAmount).toLocaleString()}</p>
+                                    <p class="text-sm text-gray-600">Dividend Earned: ₱${(investment.dividendEarned || 0).toLocaleString()}</p>
+                                    <p class="text-sm text-gray-600">Dividend Withdrawn: ₱${(investment.dividendWithdrawn || 0).toLocaleString()}</p>
+                                    <p class="text-sm text-green-600 font-semibold">Available Balance: ₱${((investment.dividendEarned || 0) - (investment.dividendWithdrawn || 0)).toLocaleString()}</p>
+                                    <p class="text-xs text-gray-400">Invested: ${new Date(investment.timestamp).toLocaleDateString()}</p>
+                                </div>
+                                ${investment.photo ? `<img src="${investment.photo}" alt="Your Photo" class="w-16 h-16 object-cover rounded ml-4">` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            // Show portfolio content
+            document.getElementById('portfolioLogin').classList.add('hidden');
+            document.getElementById('portfolioContent').classList.remove('hidden');
+        }
+
+        // ===== AFFILIATE FUNCTIONS =====
+        function showAffiliateProgram() {
+            const modal = document.getElementById('affiliateModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Generate a new affiliate number
+            generateNewAffiliateNumber();
+        }
+
+        function closeAffiliateModal() {
+            const modal = document.getElementById('affiliateModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.getElementById('affiliateForm').reset();
+        }
+
+        function generateNewAffiliateNumber() {
+            // Generate a unique 8-digit affiliate number
+            let affiliateNumber;
+            do {
+                affiliateNumber = Math.floor(10000000 + Math.random() * 90000000).toString();
+            } while (Object.values(affiliates).some(aff => aff.affiliateNumber === affiliateNumber));
+            
+            document.getElementById('generatedAffiliateNumber').value = affiliateNumber;
+        }
+
+        // Handle affiliate form submission
+        document.getElementById('affiliateForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const email = formData.get('affiliateEmail');
+            
+            // Check if email already exists
+            if (affiliates[email]) {
+                alert('This email is already registered as an affiliate!');
+                return;
+            }
+            
+            const affiliateData = {
+                name: formData.get('affiliateName'),
+                mobile: formData.get('affiliateMobile'),
+                paymentMethod: formData.get('affiliatePayment'),
+                accountDetails: formData.get('affiliateAccountDetails'),
+                affiliateNumber: document.getElementById('generatedAffiliateNumber').value,
+                registrationDate: new Date().toISOString(),
+                totalCommissions: 0,
+                pendingCommissions: 0,
+                totalWithdrawals: 0,
+                totalReferrals: 0,
+                referrals: [],
+                withdrawalHistory: []
+            };
+            
+            affiliates[email] = affiliateData;
+            await saveData('affiliates', affiliates);
+            
+            alert(`🎉 Affiliate registration successful!\n\nYour Affiliate Number: ${affiliateData.affiliateNumber}\n\nSave this number - you'll need it to:\n• Access your affiliate dashboard\n• Earn 5% commission on referrals\n\nShare this number with people you refer!`);
+            
+            closeAffiliateModal();
+        });
+
+        function showAffiliateDashboard() {
+            const modal = document.getElementById('affiliateDashboardModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Reset to login view
+            document.getElementById('affiliateDashboardLogin').classList.remove('hidden');
+            document.getElementById('affiliateDashboardContent').classList.add('hidden');
+            document.getElementById('affiliateDashboardNumber').value = '';
+        }
+
+        function closeAffiliateDashboardModal() {
+            const modal = document.getElementById('affiliateDashboardModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function loadAffiliateDashboard() {
+            const affiliateNumber = document.getElementById('affiliateDashboardNumber').value.trim();
+            if (!affiliateNumber) {
+                alert('Please enter your affiliate number');
+                return;
+            }
+            
+            // Find affiliate by number
+            const affiliateEntry = Object.entries(affiliates).find(([_, aff]) => aff.affiliateNumber === affiliateNumber);
+            
+            if (!affiliateEntry) {
+                alert('Affiliate number not found. Please check your number and try again.');
+                return;
+            }
+            
+            const [email, affiliate] = affiliateEntry;
+            
+            // Update dashboard stats
+            document.getElementById('affiliateTotalEarned').textContent = `₱${((affiliate.totalCommissions || 0) + (affiliate.totalWithdrawals || 0)).toLocaleString()}`;
+            document.getElementById('affiliateAvailableBalance').textContent = `₱${(affiliate.totalCommissions || 0).toLocaleString()}`;
+            document.getElementById('affiliatePendingEarnings').textContent = `₱${(affiliate.pendingCommissions || 0).toLocaleString()}`;
+            document.getElementById('affiliateTotalWithdrawn').textContent = `₱${(affiliate.totalWithdrawals || 0).toLocaleString()}`;
+            document.getElementById('affiliateNumber').textContent = affiliate.affiliateNumber;
+            document.getElementById('affiliateTotalReferrals').textContent = affiliate.totalReferrals || 0;
+            document.getElementById('affiliateWithdrawalCount').textContent = (affiliate.withdrawalHistory || []).length;
+            document.getElementById('affiliateNumberToCopy').value = affiliate.affiliateNumber;
+            
+            // Load referrals list
+            const referralsList = document.getElementById('affiliateReferralsList');
+            if (affiliate.referrals && affiliate.referrals.length > 0) {
+                referralsList.innerHTML = `
+                    <h4 class="text-lg font-bold mb-4">📋 Your Referrals</h4>
+                    <div class="space-y-3">
+                        ${affiliate.referrals.map(ref => `
+                            <div class="bg-white border rounded-lg p-4">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span class="font-semibold">${ref.investorName}</span>
+                                            <span class="text-sm ${ref.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'} px-2 py-1 rounded">${ref.status}</span>
+                                        </div>
+                                        <p class="text-sm text-gray-600">Investment: ₱${ref.investmentAmount.toLocaleString()}</p>
+                                        <p class="text-sm text-gray-600">Your Commission: ₱${ref.commission.toLocaleString()}</p>
+                                        <p class="text-xs text-gray-400">Date: ${new Date(ref.date).toLocaleDateString()}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                referralsList.innerHTML = `
+                    <div class="bg-gray-50 border rounded-lg p-6 text-center">
+                        <p class="text-gray-500">No referrals yet. Start sharing your affiliate number to earn commissions!</p>
+                    </div>
+                `;
+            }
+            
+            // Show dashboard content
+            document.getElementById('affiliateDashboardLogin').classList.add('hidden');
+            document.getElementById('affiliateDashboardContent').classList.remove('hidden');
+        }
+
+        function copyAffiliateNumber() {
+            const numberField = document.getElementById('affiliateNumberToCopy');
+            numberField.select();
+            numberField.setSelectionRange(0, 99999); // For mobile devices
+            
+            try {
+                document.execCommand('copy');
+                alert('✅ Affiliate number copied to clipboard!');
+            } catch (err) {
+                alert('❌ Failed to copy. Please manually copy: ' + numberField.value);
+            }
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985ce3e513979894',t:'MTc1ODk5NTkxOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
