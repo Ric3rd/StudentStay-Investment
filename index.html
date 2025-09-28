@@ -1512,20 +1512,34 @@
             updateSlotAppearance(slot, slotId);
             updateDashboard();
             
-            // Save to Firebase with collection creation
+            // Save to Firebase with improved error handling
             let firebaseSaveSuccess = false;
             
             if (isFirebaseConfigured && db) {
                 updateConnectionStatus('loading', 'Saving investment to Firebase...');
                 
                 try {
-                    // Create the investments collection if it doesn't exist by adding the document
-                    await db.collection('investments').doc(slotId).set(investmentData);
-                    firebaseSaveSuccess = true;
-                    updateConnectionStatus('online', 'Investment saved to Firebase');
-                    console.log('✅ Investment saved to Firebase (collection created if needed):', slotId);
+                    // Use set with merge to ensure document creation
+                    const docRef = db.collection('investments').doc(slotId);
+                    await docRef.set(investmentData, { merge: true });
+                    
+                    // Verify the save by reading it back
+                    const savedDoc = await docRef.get();
+                    if (savedDoc.exists) {
+                        firebaseSaveSuccess = true;
+                        updateConnectionStatus('online', 'Investment saved to Firebase');
+                        console.log('✅ Investment saved and verified in Firebase:', slotId);
+                    } else {
+                        throw new Error('Document was not created in Firebase');
+                    }
                 } catch (error) {
                     console.error('❌ Firebase save error:', error);
+                    console.error('Error details:', {
+                        code: error.code,
+                        message: error.message,
+                        slotId: slotId,
+                        dataSize: JSON.stringify(investmentData).length
+                    });
                     firebaseSaveSuccess = false;
                     updateConnectionStatus('offline', 'Failed to save to Firebase');
                 }
@@ -2275,7 +2289,7 @@
                             // Save affiliate data to Firebase
                             if (isFirebaseConfigured && db) {
                                 try {
-                                    await db.collection('affiliates').doc(affiliateEmail).set(affiliate, { merge: true });
+                                    await db.collection('affiliates').doc(affiliateEmail).set(affiliate, { merge: false });
                                     console.log('✅ Affiliate data saved to Firebase:', affiliateEmail);
                                 } catch (error) {
                                     console.error('❌ Failed to save affiliate to Firebase:', error);
@@ -2286,20 +2300,34 @@
                 }
             }
             
-            // Save investment to Firebase
+            // Save investment to Firebase with verification
             let firebaseSaveSuccess = false;
             
             if (isFirebaseConfigured && db) {
                 updateConnectionStatus('loading', 'Saving approved investment to Firebase...');
                 
                 try {
-                    // Direct document save (this will create the collection if it doesn't exist)
-                    await db.collection('investments').doc(slotId).set(investment);
-                    firebaseSaveSuccess = true;
-                    updateConnectionStatus('online', 'Investment approved and saved to Firebase');
-                    console.log('✅ Approved investment saved to Firebase:', slotId);
+                    // Direct document save with verification
+                    const docRef = db.collection('investments').doc(slotId);
+                    await docRef.set(investment, { merge: true });
+                    
+                    // Verify the save
+                    const savedDoc = await docRef.get();
+                    if (savedDoc.exists && savedDoc.data().status === 'approved') {
+                        firebaseSaveSuccess = true;
+                        updateConnectionStatus('online', 'Investment approved and saved to Firebase');
+                        console.log('✅ Approved investment saved and verified in Firebase:', slotId);
+                    } else {
+                        throw new Error('Approved investment was not properly saved to Firebase');
+                    }
                 } catch (error) {
                     console.error('❌ Firebase save failed for approval:', error);
+                    console.error('Approval error details:', {
+                        code: error.code,
+                        message: error.message,
+                        slotId: slotId,
+                        status: investment.status
+                    });
                     updateConnectionStatus('offline', 'Approval saved locally only');
                 }
             } else {
@@ -3470,5 +3498,5 @@
             alert('✅ All affiliate data cleared successfully!');
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98611df6250e2416',t:'MTc1OTA0MDIzOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9861682930498cff',t:'MTc1OTA0MzI3OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
