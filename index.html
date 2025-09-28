@@ -5753,6 +5753,75 @@
             }
         }
 
+        // ===== REFRESH FUNCTIONS =====
+        async function refreshPortfolioData() {
+            if (!currentUserEmail) {
+                alert('Please login to your portfolio first');
+                return;
+            }
+            
+            updateConnectionStatus('loading', 'Refreshing portfolio data...');
+            
+            try {
+                // Reload data from Firebase
+                const [investmentData, withdrawalData] = await Promise.all([
+                    loadFromFirebase('investments'),
+                    loadFromFirebase('withdrawalRequests')
+                ]);
+                
+                if (investmentData) {
+                    investments = investmentData;
+                }
+                if (withdrawalData) {
+                    withdrawalRequests = withdrawalData;
+                }
+                
+                // Reload portfolio
+                loadPortfolio();
+                
+                updateConnectionStatus('online', 'Portfolio data refreshed');
+                alert('✅ Portfolio data refreshed successfully!');
+            } catch (error) {
+                console.error('Failed to refresh portfolio data:', error);
+                updateConnectionStatus('offline', 'Refresh failed');
+                alert('❌ Failed to refresh portfolio data from Firebase');
+            }
+        }
+        
+        async function refreshAffiliateDashboardData() {
+            if (!currentAffiliateNumber) {
+                alert('Please login to your affiliate dashboard first');
+                return;
+            }
+            
+            updateConnectionStatus('loading', 'Refreshing affiliate data...');
+            
+            try {
+                // Reload data from Firebase
+                const [affiliateData, affiliateWithdrawalData] = await Promise.all([
+                    loadFromFirebase('affiliates'),
+                    loadFromFirebase('affiliateWithdrawalRequests')
+                ]);
+                
+                if (affiliateData) {
+                    affiliates = affiliateData;
+                }
+                if (affiliateWithdrawalData) {
+                    affiliateWithdrawalRequests = affiliateWithdrawalData;
+                }
+                
+                // Reload affiliate dashboard
+                loadAffiliateDashboard();
+                
+                updateConnectionStatus('online', 'Affiliate data refreshed');
+                alert('✅ Affiliate data refreshed successfully!');
+            } catch (error) {
+                console.error('Failed to refresh affiliate data:', error);
+                updateConnectionStatus('offline', 'Refresh failed');
+                alert('❌ Failed to refresh affiliate data from Firebase');
+            }
+        }
+
         // ===== INVESTOR MANAGEMENT FUNCTIONS =====
         function confirmDeleteInvestor(email) {
             // Find all investments for this investor
@@ -5976,5 +6045,5 @@
 
 
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9863f9b555fa16cd',t:'MTc1OTA3MDIxMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98642f9e4474586b',t:'MTc1OTA3MjQxOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
