@@ -2529,15 +2529,15 @@
                                         </div>
                                         <div class="bg-red-50 border-2 border-red-200 rounded-lg p-4 text-center">
                                             <div class="text-red-800 font-bold mb-2">⚠️ DANGER ZONE</div>
-                                            <button onclick="confirmRevokeInvestment('${slotId}')" 
+                                            <button onclick="confirmRevokeUnit('${slotId}')" 
                                                     class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700 font-bold w-full border-2 border-red-700 shadow-lg transform hover:scale-105 transition-all mb-2">
-                                                🚫 REVOKE INVESTMENT
+                                                🚫 REVOKE THIS UNIT
                                             </button>
-                                            <button onclick="confirmDeleteInvestor('${slotId}')" 
+                                            <button onclick="confirmDeleteUnit('${slotId}')" 
                                                     class="bg-red-800 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-900 font-bold w-full border-2 border-red-900 shadow-lg transform hover:scale-105 transition-all">
-                                                🗑️ DELETE INVESTOR
+                                                🗑️ DELETE THIS UNIT
                                             </button>
-                                            <div class="text-xs text-red-600 mt-1">Revoke = slot available | Delete = permanent removal</div>
+                                            <div class="text-xs text-red-600 mt-1">Revoke = unit available | Delete = unit removed</div>
                                         </div>
                                     </div>
                                 </div>
@@ -3140,35 +3140,36 @@
             }
         }
 
-        function confirmRevokeInvestment(slotId) {
+        function confirmRevokeUnit(slotId) {
             const investment = investments[slotId];
             if (!investment) {
-                alert('Investment not found!');
+                alert('Investment unit not found!');
                 return;
             }
             
-            const confirmMessage = `⚠️ CONFIRM REVOKE INVESTMENT ⚠️\n\n` +
+            const confirmMessage = `⚠️ CONFIRM REVOKE UNIT ⚠️\n\n` +
+                `Unit: ${investment.slotNumber || generateSlotNumber(slotId)}\n` +
                 `Investor: ${investment.fullName}\n` +
-                `Slot: ${slotId}\n` +
                 `Investment Amount: ₱${parseInt(investment.investmentAmount).toLocaleString()}\n` +
                 `Dividend Earned: ₱${(investment.dividendEarned || 0).toLocaleString()}\n\n` +
                 `This action will:\n` +
-                `• Make the slot available (green) again\n` +
-                `• Remove all investment data permanently\n` +
-                `• Reverse any affiliate commissions\n` +
+                `• Make this unit available (green) again\n` +
+                `• Remove this unit's investment data permanently\n` +
+                `• Reverse affiliate commission for this unit only\n` +
+                `• Other units from same investor remain unchanged\n` +
                 `• Cannot be undone\n\n` +
                 `Type "REVOKE" to confirm:`;
             
             const userInput = prompt(confirmMessage);
             
             if (userInput === 'REVOKE') {
-                revokeInvestment(slotId);
+                revokeUnit(slotId);
             } else {
-                alert('Revoke cancelled. Investment remains unchanged.');
+                alert('Revoke cancelled. Unit remains unchanged.');
             }
         }
 
-        async function revokeInvestment(slotId) {
+        async function revokeUnit(slotId) {
             const investment = investments[slotId];
             
             if (!investment) {
@@ -3300,9 +3301,9 @@
             }, 100);
             
             if (firebaseDeleteSuccess) {
-                alert(`✅ Investment revoked successfully and removed from Firebase!\n\nSlot ${slotId} is now available (green) again.\nAll investment and affiliate data has been removed.`);
+                alert(`✅ Unit revoked successfully and removed from Firebase!\n\nUnit ${investment.slotNumber || generateSlotNumber(slotId)} is now available (green) again.\nThis unit's investment and affiliate data has been removed.`);
             } else {
-                alert(`⚠️ Investment revoked locally but failed to remove from Firebase.\n\nSlot ${slotId} is now available (green) again.\nPlease check your internet connection.`);
+                alert(`⚠️ Unit revoked locally but failed to remove from Firebase.\n\nUnit ${investment.slotNumber || generateSlotNumber(slotId)} is now available (green) again.\nPlease check your internet connection.`);
             }
         }
 
@@ -3983,7 +3984,7 @@
                 
                 // Calculate fees
                 const transferFee = 20;
-                const adminFee = Math.round(amount * 0.01);
+                const adminFee = 25; // Fixed ₱25 admin fee
                 const totalFees = transferFee + adminFee;
                 const netAmount = amount - totalFees;
                 
@@ -4128,7 +4129,7 @@
                 
                 // Calculate fees
                 const transferFee = 20;
-                const adminFee = Math.round(amount * 0.01);
+                const adminFee = 25; // Fixed ₱25 admin fee
                 const totalFees = transferFee + adminFee;
                 const netAmount = amount - totalFees;
                 
@@ -4452,8 +4453,8 @@
             
             const availableBalance = totalDividendEarned - totalDividendWithdrawn;
             
-            if (availableBalance < 120) { // Minimum 100 + 20 transfer fee
-                alert(`Insufficient dividend balance for withdrawal.\n\nAvailable: ₱${availableBalance.toLocaleString()}\nMinimum: ₱120 (₱100 + ₱20 transfer fee)\n\nPlease wait for more dividend payments.`);
+            if (availableBalance < 145) { // Minimum 100 + 20 transfer fee + 25 admin fee
+                alert(`Insufficient dividend balance for withdrawal.\n\nAvailable: ₱${availableBalance.toLocaleString()}\nMinimum: ₱145 (₱100 + ₱20 transfer fee + ₱25 admin fee)\n\nPlease wait for more dividend payments.`);
                 return;
             }
             
@@ -4481,7 +4482,7 @@
                         <input type="number" id="dividendWithdrawAmount" name="dividendWithdrawAmount" required min="100" step="100" 
                                max="${availableBalance - 20}" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500" 
                                placeholder="Enter amount to withdraw" onchange="calculateDividendWithdrawalFees()">
-                        <div class="text-xs text-gray-500 mt-1">Minimum withdrawal: ₱100 (plus ₱20 transfer fee)</div>
+                        <div class="text-xs text-gray-500 mt-1">Minimum withdrawal: ₱100 (plus ₱20 transfer fee + ₱25 admin fee)</div>
                     </div>
                     
                     <div id="dividendWithdrawalBreakdown" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 hidden">
@@ -4496,8 +4497,8 @@
                                 <span id="dividendTransferFee">-₱20</span>
                             </div>
                             <div class="flex justify-between text-red-600">
-                                <span>Admin Fee (1%):</span>
-                                <span id="dividendAdminFee">-₱0</span>
+                                <span>Admin Fee:</span>
+                                <span id="dividendAdminFee">-₱25</span>
                             </div>
                             <hr class="border-yellow-300">
                             <div class="flex justify-between font-bold text-lg">
@@ -4675,8 +4676,7 @@
             
             // Calculate fees
             const transferFee = 20;
-            const adminFeeRate = 0.01; // 1%
-            const adminFee = Math.round(capitalAmount * adminFeeRate);
+            const adminFee = 25; // Fixed ₱25 admin fee
             const totalFees = transferFee + adminFee;
             const netAmount = capitalAmount - totalFees;
             
@@ -4707,7 +4707,7 @@
                                 <span>-₱${transferFee.toLocaleString()}</span>
                             </div>
                             <div class="flex justify-between text-red-600">
-                                <span>Admin Fee (1%):</span>
+                                <span>Admin Fee:</span>
                                 <span>-₱${adminFee.toLocaleString()}</span>
                             </div>
                             <hr class="border-yellow-300">
@@ -4785,8 +4785,8 @@
             const [email, affiliate] = affiliateEntry;
             const availableBalance = (affiliate.totalCommissions || 0) - (affiliate.totalWithdrawals || 0);
             
-            if (availableBalance < 120) { // Minimum 100 + 20 transfer fee
-                alert(`Insufficient commission balance for withdrawal.\n\nAvailable: ₱${availableBalance.toLocaleString()}\nMinimum: ₱120 (₱100 + ₱20 transfer fee)\n\nPlease wait for more commission earnings.`);
+            if (availableBalance < 145) { // Minimum 100 + 20 transfer fee + 25 admin fee
+                alert(`Insufficient commission balance for withdrawal.\n\nAvailable: ₱${availableBalance.toLocaleString()}\nMinimum: ₱145 (₱100 + ₱20 transfer fee + ₱25 admin fee)\n\nPlease wait for more commission earnings.`);
                 return;
             }
             
@@ -4814,7 +4814,7 @@
                         <input type="number" id="affiliateWithdrawAmount" name="affiliateWithdrawAmount" required min="100" step="100" 
                                max="${availableBalance - 20}" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500" 
                                placeholder="Enter amount to withdraw" onchange="calculateAffiliateWithdrawalFees()">
-                        <div class="text-xs text-gray-500 mt-1">Minimum withdrawal: ₱100 (plus ₱20 transfer fee)</div>
+                        <div class="text-xs text-gray-500 mt-1">Minimum withdrawal: ₱100 (plus ₱20 transfer fee + ₱25 admin fee)</div>
                     </div>
                     
                     <div id="affiliateWithdrawalBreakdown" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 hidden">
@@ -4829,8 +4829,8 @@
                                 <span id="affiliateTransferFee">-₱20</span>
                             </div>
                             <div class="flex justify-between text-red-600">
-                                <span>Admin Fee (1%):</span>
-                                <span id="affiliateAdminFee">-₱0</span>
+                                <span>Admin Fee:</span>
+                                <span id="affiliateAdminFee">-₱25</span>
                             </div>
                             <hr class="border-yellow-300">
                             <div class="flex justify-between font-bold text-lg">
@@ -4884,8 +4884,7 @@
             
             if (amount > 0) {
                 const transferFee = 20;
-                const adminFeeRate = 0.01; // 1%
-                const adminFee = Math.round(amount * adminFeeRate);
+                const adminFee = 25; // Fixed ₱25 admin fee
                 const totalFees = transferFee + adminFee;
                 const netAmount = amount - totalFees;
                 
@@ -5223,7 +5222,7 @@
                                     <span class="font-semibold text-yellow-800">₱${financialData.totalTransferFees.toLocaleString()}</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-yellow-700">Admin Fees (1%):</span>
+                                    <span class="text-yellow-700">Admin Fees (₱30 each):</span>
                                     <span class="font-semibold text-yellow-800">₱${financialData.totalAdminFees.toLocaleString()}</span>
                                 </div>
                                 <hr class="border-yellow-300">
@@ -5347,14 +5346,16 @@
             
             // Calculate from withdrawal requests (fees)
             Object.values(withdrawalRequests).forEach(request => {
-                if (request.status === 'approved' && request.transferFee && request.adminFee) {
-                    totalTransferFees += request.transferFee;
-                    totalAdminFees += request.adminFee;
+                if (request.status === 'approved') {
+                    const transferFee = request.transferFee || 20;
+                    const adminFee = request.adminFee || 30;
+                    totalTransferFees += transferFee;
+                    totalAdminFees += adminFee;
                     
                     recentTransactions.push({
                         type: 'fee',
-                        amount: request.transferFee + request.adminFee,
-                        fees: request.transferFee + request.adminFee,
+                        amount: transferFee + adminFee,
+                        fees: transferFee + adminFee,
                         date: request.processedDate || request.timestamp,
                         description: `Withdrawal fees - ${request.type} withdrawal`
                     });
@@ -5363,14 +5364,16 @@
             
             // Calculate from affiliate withdrawal requests (fees)
             Object.values(affiliateWithdrawalRequests).forEach(request => {
-                if (request.status === 'approved' && request.transferFee && request.adminFee) {
-                    totalTransferFees += request.transferFee;
-                    totalAdminFees += request.adminFee;
+                if (request.status === 'approved') {
+                    const transferFee = request.transferFee || 20;
+                    const adminFee = request.adminFee || 30;
+                    totalTransferFees += transferFee;
+                    totalAdminFees += adminFee;
                     
                     recentTransactions.push({
                         type: 'fee',
-                        amount: request.transferFee + request.adminFee,
-                        fees: request.transferFee + request.adminFee,
+                        amount: transferFee + adminFee,
+                        fees: transferFee + adminFee,
                         date: request.processedDate || request.timestamp,
                         description: `Commission withdrawal fees - ${request.affiliateName}`
                     });
@@ -5506,34 +5509,35 @@
             loadAdminSettings();
         }
 
-        function confirmDeleteInvestor(slotId) {
+        function confirmDeleteUnit(slotId) {
             const investment = investments[slotId];
             if (!investment) {
-                alert('Investment not found!');
+                alert('Investment unit not found!');
                 return;
             }
             
-            const confirmMessage = `⚠️ CONFIRM DELETE INVESTOR ⚠️\n\n` +
+            const confirmMessage = `⚠️ CONFIRM DELETE UNIT ⚠️\n\n` +
+                `Unit: ${investment.slotNumber || generateSlotNumber(slotId)}\n` +
                 `Investor: ${investment.fullName}\n` +
                 `Email: ${investment.email}\n` +
-                `Slot: ${slotId}\n` +
                 `Investment Amount: ₱${parseInt(investment.investmentAmount).toLocaleString()}\n\n` +
                 `This action will:\n` +
-                `• PERMANENTLY delete all investor data\n` +
-                `• Remove the slot completely (no green slot)\n` +
+                `• PERMANENTLY delete this unit's data\n` +
+                `• Remove the unit completely (no green slot)\n` +
+                `• Other units from same investor remain unchanged\n` +
                 `• Cannot be undone\n\n` +
                 `Type "DELETE" to confirm:`;
             
             const userInput = prompt(confirmMessage);
             
             if (userInput === 'DELETE') {
-                deleteInvestor(slotId);
+                deleteUnit(slotId);
             } else {
-                alert('Delete cancelled. Investor data remains unchanged.');
+                alert('Delete cancelled. Unit data remains unchanged.');
             }
         }
 
-        async function deleteInvestor(slotId) {
+        async function deleteUnit(slotId) {
             const investment = investments[slotId];
             
             if (!investment) {
@@ -5541,7 +5545,7 @@
                 return;
             }
             
-            console.log('Deleting investor for slot:', slotId);
+            console.log('Deleting unit for slot:', slotId);
             console.log('Investment data:', investment);
             
             // Handle affiliate commission reversal if applicable
@@ -5573,7 +5577,7 @@
                     if (isFirebaseConfigured && db) {
                         try {
                             await db.collection('affiliates').doc(affiliateEmail).set(affiliate, { merge: true });
-                            console.log('✅ Affiliate data updated in Firebase after delete');
+                            console.log('✅ Affiliate data updated in Firebase after unit delete');
                         } catch (error) {
                             console.error('❌ Failed to update affiliate in Firebase:', error);
                         }
@@ -5588,7 +5592,7 @@
             let firebaseDeleteSuccess = false;
             
             if (isFirebaseConfigured && db) {
-                updateConnectionStatus('loading', 'Deleting investment from Firebase...');
+                updateConnectionStatus('loading', 'Deleting unit from Firebase...');
                 
                 try {
                     const docRef = db.collection('investments').doc(slotId);
@@ -5597,15 +5601,15 @@
                     if (doc.exists) {
                         await docRef.delete();
                         firebaseDeleteSuccess = true;
-                        updateConnectionStatus('online', 'Investment deleted from Firebase');
-                        console.log('✅ Investment deleted from Firebase:', slotId);
+                        updateConnectionStatus('online', 'Unit deleted from Firebase');
+                        console.log('✅ Unit deleted from Firebase:', slotId);
                     } else {
                         firebaseDeleteSuccess = true;
-                        updateConnectionStatus('online', 'Investment not found in Firebase (already removed)');
-                        console.log('ℹ️ Investment not found in Firebase:', slotId);
+                        updateConnectionStatus('online', 'Unit not found in Firebase (already removed)');
+                        console.log('ℹ️ Unit not found in Firebase:', slotId);
                     }
                 } catch (error) {
-                    console.error('❌ Failed to delete investment from Firebase:', error);
+                    console.error('❌ Failed to delete unit from Firebase:', error);
                     updateConnectionStatus('offline', 'Delete saved locally only');
                 }
             } else {
@@ -5634,10 +5638,147 @@
             }, 100);
             
             if (firebaseDeleteSuccess) {
-                alert(`✅ Investor deleted permanently from Firebase!\n\nAll data for ${investment.fullName} has been removed from the system.`);
+                alert(`✅ Unit deleted permanently from Firebase!\n\nUnit ${investment.slotNumber || generateSlotNumber(slotId)} has been removed from the system.\nOther units from ${investment.fullName} remain unchanged.`);
             } else {
-                alert(`⚠️ Investor deleted locally but failed to remove from Firebase.\n\nAll data for ${investment.fullName} has been removed locally.\nPlease check your internet connection.`);
+                alert(`⚠️ Unit deleted locally but failed to remove from Firebase.\n\nUnit ${investment.slotNumber || generateSlotNumber(slotId)} has been removed locally.\nPlease check your internet connection.`);
             }
+        }
+
+        // ===== INVESTOR MANAGEMENT FUNCTIONS =====
+        function confirmDeleteInvestor(email) {
+            // Find all investments for this investor
+            const investorInvestments = Object.entries(investments).filter(([_, investment]) => 
+                investment.email.toLowerCase() === email.toLowerCase()
+            );
+            
+            if (investorInvestments.length === 0) {
+                alert('No investments found for this investor!');
+                return;
+            }
+            
+            const investment = investorInvestments[0][1]; // Get first investment for investor details
+            const totalInvestment = investorInvestments.reduce((sum, [_, inv]) => sum + parseInt(inv.investmentAmount), 0);
+            
+            const confirmMessage = `⚠️ CONFIRM DELETE ENTIRE INVESTOR ⚠️\n\n` +
+                `Investor: ${investment.fullName}\n` +
+                `Email: ${email}\n` +
+                `Total Units: ${investorInvestments.length}\n` +
+                `Total Investment: ₱${totalInvestment.toLocaleString()}\n\n` +
+                `Units to be deleted:\n${investorInvestments.map(([slotId, inv]) => `• ${inv.slotNumber || generateSlotNumber(slotId)}`).join('\n')}\n\n` +
+                `This action will:\n` +
+                `• PERMANENTLY delete ALL units from this investor\n` +
+                `• Remove ALL investment data for this investor\n` +
+                `• Reverse ALL affiliate commissions from this investor\n` +
+                `• Cannot be undone\n\n` +
+                `Type "DELETE ALL" to confirm:`;
+            
+            const userInput = prompt(confirmMessage);
+            
+            if (userInput === 'DELETE ALL') {
+                deleteInvestor(email);
+            } else {
+                alert('Delete cancelled. Investor data remains unchanged.');
+            }
+        }
+
+        async function deleteInvestor(email) {
+            // Find all investments for this investor
+            const investorInvestments = Object.entries(investments).filter(([_, investment]) => 
+                investment.email.toLowerCase() === email.toLowerCase()
+            );
+            
+            if (investorInvestments.length === 0) {
+                alert('No investments found for this investor!');
+                return;
+            }
+            
+            const investorName = investorInvestments[0][1].fullName;
+            console.log('Deleting all units for investor:', email);
+            
+            let totalCommissionReversed = 0;
+            
+            // Process each investment unit
+            for (const [slotId, investment] of investorInvestments) {
+                console.log('Processing unit:', slotId, investment);
+                
+                // Handle affiliate commission reversal if applicable
+                if (investment.affiliateNumber) {
+                    let affiliateEmail = null;
+                    let affiliate = null;
+                    
+                    for (const [affEmail, affData] of Object.entries(affiliates)) {
+                        if (affData.affiliateNumber === investment.affiliateNumber) {
+                            affiliateEmail = affEmail;
+                            affiliate = affData;
+                            break;
+                        }
+                    }
+                    
+                    if (affiliate && affiliateEmail) {
+                        if (affiliate.referrals) {
+                            const referralIndex = affiliate.referrals.findIndex(ref => ref.slotId === slotId);
+                            if (referralIndex !== -1) {
+                                const referral = affiliate.referrals[referralIndex];
+                                affiliate.totalCommissions = Math.max(0, (affiliate.totalCommissions || 0) - referral.commission);
+                                affiliate.totalReferrals = Math.max(0, (affiliate.totalReferrals || 0) - 1);
+                                affiliate.referrals.splice(referralIndex, 1);
+                                totalCommissionReversed += referral.commission;
+                            }
+                        }
+                        
+                        // Update affiliate data in Firebase
+                        affiliates[affiliateEmail] = affiliate;
+                        if (isFirebaseConfigured && db) {
+                            try {
+                                await db.collection('affiliates').doc(affiliateEmail).set(affiliate, { merge: true });
+                                console.log('✅ Affiliate data updated in Firebase after investor delete');
+                            } catch (error) {
+                                console.error('❌ Failed to update affiliate in Firebase:', error);
+                            }
+                        }
+                    }
+                }
+                
+                // Remove the investment from local storage
+                delete investments[slotId];
+                
+                // Remove from Firebase
+                if (isFirebaseConfigured && db) {
+                    try {
+                        const docRef = db.collection('investments').doc(slotId);
+                        const doc = await docRef.get();
+                        
+                        if (doc.exists) {
+                            await docRef.delete();
+                            console.log('✅ Unit deleted from Firebase:', slotId);
+                        }
+                    } catch (error) {
+                        console.error('❌ Failed to delete unit from Firebase:', error);
+                    }
+                }
+                
+                // Find and remove the slot element completely
+                const slot = document.querySelector(`[data-slot-id="${slotId}"]`);
+                if (slot) {
+                    slot.remove();
+                }
+                
+                // Close photo modal if open for this slot
+                if (currentPhotoSlot === slotId) {
+                    closePhotoModal();
+                }
+            }
+            
+            // Refresh displays
+            setTimeout(() => {
+                updateDashboard();
+                if (isAdminLoggedIn) {
+                    loadAdminInvestments();
+                    loadAdminAffiliates();
+                }
+            }, 100);
+            
+            alert(`✅ Investor deleted permanently!\n\nInvestor: ${investorName}\nUnits Deleted: ${investorInvestments.length}\nCommissions Reversed: ₱${totalCommissionReversed.toLocaleString()}\n\nAll data for this investor has been removed from the system.`);
         }
 
         function confirmDeleteAffiliate(email) {
@@ -5726,5 +5867,5 @@
 
 
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98628ec2c0ae9894',t:'MTc1OTA1NTM0NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9862f1cd66549890',t:'MTc1OTA1OTQwMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
