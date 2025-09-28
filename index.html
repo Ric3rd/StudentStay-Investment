@@ -581,9 +581,9 @@
             <div id="portfolioLogin" class="text-center">
                 <p class="mb-4 text-gray-600">Enter your email and portfolio password to view your investments</p>
                 <div class="space-y-4 max-w-sm mx-auto">
-                    <input type="email" id="portfolioEmail" placeholder="Enter your email address" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                    <input type="password" id="portfolioPasswordLogin" placeholder="Enter your portfolio password" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                    <button onclick="loadPortfolio()" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700">View Portfolio</button>
+                    <input type="email" id="portfolioEmail" placeholder="Enter your email address" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" onkeypress="if(event.key==='Enter') loadPortfolio()">
+                    <input type="password" id="portfolioPasswordLogin" placeholder="Enter your portfolio password" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" onkeypress="if(event.key==='Enter') loadPortfolio()">
+                    <button onclick="loadPortfolio()" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors">View Portfolio</button>
                     <button onclick="closePortfolioModal()" class="w-full bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600">Cancel</button>
                 </div>
             </div>
@@ -3630,6 +3630,8 @@
             const email = document.getElementById('portfolioEmail').value.trim();
             const password = document.getElementById('portfolioPasswordLogin').value.trim();
             
+            console.log('🔍 Portfolio login attempt:', { email, password: password ? '***' : 'empty' });
+            
             if (!email || !password) {
                 alert('Please enter both your email address and portfolio password');
                 return;
@@ -3699,8 +3701,9 @@
             document.getElementById('totalSlots').textContent = userInvestments.length;
             
             // Load withdrawal requests for this user
-            const userWithdrawalRequests = Object.entries(withdrawalRequests).filter(([_, request]) => 
-                request.email.toLowerCase() === email.toLowerCase()
+            const safeWithdrawalRequests = withdrawalRequests || {};
+            const userWithdrawalRequests = Object.entries(safeWithdrawalRequests).filter(([_, request]) => 
+                request && request.email && request.email.toLowerCase() === email.toLowerCase()
             );
             
             // Load investment details
@@ -3722,9 +3725,9 @@
                                                     'bg-yellow-100 text-yellow-800'
                                                 } px-2 py-1 rounded">${request.status}</span>
                                             </div>
-                                            <p class="text-sm text-gray-600">Amount: ₱${request.amount.toLocaleString()}</p>
-                                            <p class="text-sm text-gray-600">Method: ${request.method}</p>
-                                            <p class="text-xs text-gray-400">Requested: ${new Date(request.timestamp).toLocaleDateString()}</p>
+                                            <p class="text-sm text-gray-600">Amount: ₱${(request.amount || request.grossAmount || 0).toLocaleString()}</p>
+                                            <p class="text-sm text-gray-600">Method: ${request.method || 'N/A'}</p>
+                                            <p class="text-xs text-gray-400">Requested: ${request.timestamp ? new Date(request.timestamp).toLocaleDateString() : 'N/A'}</p>
                                             ${request.adminNotes ? `<p class="text-xs text-blue-600 mt-1">Admin Notes: ${request.adminNotes}</p>` : ''}
                                         </div>
                                     </div>
@@ -3788,8 +3791,14 @@
             `;
             
             // Show portfolio content
-            document.getElementById('portfolioLogin').classList.add('hidden');
-            document.getElementById('portfolioContent').classList.remove('hidden');
+            try {
+                document.getElementById('portfolioLogin').classList.add('hidden');
+                document.getElementById('portfolioContent').classList.remove('hidden');
+                console.log('✅ Portfolio content displayed successfully');
+            } catch (error) {
+                console.error('❌ Error showing portfolio content:', error);
+                alert('Error displaying portfolio. Please try again.');
+            }
         }
 
         // ===== BUDGET RECOMMENDATION FUNCTIONS =====
@@ -4444,9 +4453,9 @@
                                                     'bg-yellow-100 text-yellow-800'
                                                 } px-2 py-1 rounded">${request.status}</span>
                                             </div>
-                                            <p class="text-sm text-gray-600">Amount: ₱${request.amount.toLocaleString()}</p>
-                                            <p class="text-sm text-gray-600">Method: ${request.method}</p>
-                                            <p class="text-xs text-gray-400">Requested: ${new Date(request.timestamp).toLocaleDateString()}</p>
+                                            <p class="text-sm text-gray-600">Amount: ₱${(request.amount || request.grossAmount || 0).toLocaleString()}</p>
+                                            <p class="text-sm text-gray-600">Method: ${request.method || 'N/A'}</p>
+                                            <p class="text-xs text-gray-400">Requested: ${request.timestamp ? new Date(request.timestamp).toLocaleDateString() : 'N/A'}</p>
                                             ${request.adminNotes ? `<p class="text-xs text-blue-600 mt-1">Admin Notes: ${request.adminNotes}</p>` : ''}
                                         </div>
                                     </div>
@@ -5041,16 +5050,20 @@
         function loadAdminWithdrawals() {
             const container = document.getElementById('adminWithdrawalContent');
             
-            const pendingWithdrawals = Object.entries(withdrawalRequests).filter(([_, request]) => 
-                request.status === 'pending'
+            // Ensure withdrawal requests objects exist and have valid data
+            const safeWithdrawalRequests = withdrawalRequests || {};
+            const safeAffiliateWithdrawalRequests = affiliateWithdrawalRequests || {};
+            
+            const pendingWithdrawals = Object.entries(safeWithdrawalRequests).filter(([_, request]) => 
+                request && request.status === 'pending'
             );
             
-            const pendingAffiliateWithdrawals = Object.entries(affiliateWithdrawalRequests).filter(([_, request]) => 
-                request.status === 'pending'
+            const pendingAffiliateWithdrawals = Object.entries(safeAffiliateWithdrawalRequests).filter(([_, request]) => 
+                request && request.status === 'pending'
             );
             
-            const allWithdrawals = Object.entries(withdrawalRequests);
-            const allAffiliateWithdrawals = Object.entries(affiliateWithdrawalRequests);
+            const allWithdrawals = Object.entries(safeWithdrawalRequests);
+            const allAffiliateWithdrawals = Object.entries(safeAffiliateWithdrawalRequests);
             
             container.innerHTML = `
                 <div class="mb-6">
@@ -5087,12 +5100,12 @@
                                                 <span class="font-semibold text-lg">${request.type === 'dividend' ? '💰 Dividend' : '🏦 Capital'} Withdrawal</span>
                                                 <span class="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded">${request.status}</span>
                                             </div>
-                                            <p class="text-sm text-gray-600">Email: ${request.email}</p>
-                                            <p class="text-sm text-gray-600">Amount: ₱${request.amount.toLocaleString()}</p>
-                                            <p class="text-sm text-gray-600">Method: ${request.method}</p>
-                                            <p class="text-sm text-gray-600">Account: ${request.accountDetails}</p>
+                                            <p class="text-sm text-gray-600">Email: ${request.email || 'N/A'}</p>
+                                            <p class="text-sm text-gray-600">Amount: ₱${(request.amount || request.grossAmount || 0).toLocaleString()}</p>
+                                            <p class="text-sm text-gray-600">Method: ${request.method || 'N/A'}</p>
+                                            <p class="text-sm text-gray-600">Account: ${request.accountDetails || 'N/A'}</p>
                                             ${request.reason ? `<p class="text-sm text-gray-600">Reason: ${request.reason}</p>` : ''}
-                                            <p class="text-xs text-gray-400">Requested: ${new Date(request.timestamp).toLocaleDateString()}</p>
+                                            <p class="text-xs text-gray-400">Requested: ${request.timestamp ? new Date(request.timestamp).toLocaleDateString() : 'N/A'}</p>
                                         </div>
                                     </div>
                                     
@@ -5130,13 +5143,13 @@
                                                 <span class="font-semibold text-lg">💸 Commission Withdrawal</span>
                                                 <span class="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded">${request.status}</span>
                                             </div>
-                                            <p class="text-sm text-gray-600">Affiliate: ${request.affiliateName}</p>
-                                            <p class="text-sm text-gray-600">Email: ${request.email}</p>
-                                            <p class="text-sm text-gray-600">Affiliate #: ${request.affiliateNumber}</p>
-                                            <p class="text-sm text-gray-600">Amount: ₱${request.amount.toLocaleString()}</p>
-                                            <p class="text-sm text-gray-600">Method: ${request.method}</p>
-                                            <p class="text-sm text-gray-600">Account: ${request.accountDetails}</p>
-                                            <p class="text-xs text-gray-400">Requested: ${new Date(request.timestamp).toLocaleDateString()}</p>
+                                            <p class="text-sm text-gray-600">Affiliate: ${request.affiliateName || 'N/A'}</p>
+                                            <p class="text-sm text-gray-600">Email: ${request.email || 'N/A'}</p>
+                                            <p class="text-sm text-gray-600">Affiliate #: ${request.affiliateNumber || 'N/A'}</p>
+                                            <p class="text-sm text-gray-600">Amount: ₱${(request.amount || request.grossAmount || 0).toLocaleString()}</p>
+                                            <p class="text-sm text-gray-600">Method: ${request.method || 'N/A'}</p>
+                                            <p class="text-sm text-gray-600">Account: ${request.accountDetails || 'N/A'}</p>
+                                            <p class="text-xs text-gray-400">Requested: ${request.timestamp ? new Date(request.timestamp).toLocaleDateString() : 'N/A'}</p>
                                         </div>
                                     </div>
                                     
@@ -6183,5 +6196,5 @@
 
 
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98670bf6508ba375',t:'MTc1OTEwMjQxNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98671a2e30447575',t:'MTc1OTEwMjk5OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
