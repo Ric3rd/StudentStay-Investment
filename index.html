@@ -2731,6 +2731,28 @@
                                         <div class="text-xs text-red-600 mt-1">Total Withdrawn: ₱${(affiliate.totalWithdrawals || 0).toLocaleString()}</div>
                                     </div>
                                 </div>
+                                <div class="flex flex-col justify-center space-y-2">
+                                    <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center mb-2">
+                                        <div class="text-blue-800 font-bold mb-2">🔐 PASSWORD MANAGEMENT</div>
+                                        <div class="text-xs text-blue-600 mb-2">Current Password: <strong>${affiliate.affiliatePassword || 'Not Set'}</strong></div>
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <input type="password" id="newAffiliatePassword_${safeId}" placeholder="New password" 
+                                                   class="flex-1 p-2 border rounded text-sm" minlength="6">
+                                            <button onclick="resetAffiliatePassword('${email}')" 
+                                                    class="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700">
+                                                🔄 Reset
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="bg-red-50 border-2 border-red-200 rounded-lg p-4 text-center">
+                                        <div class="text-red-800 font-bold mb-2">⚠️ DANGER ZONE</div>
+                                        <button onclick="confirmDeleteAffiliate('${email}')" 
+                                                class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700 font-bold w-full border-2 border-red-700 shadow-lg transform hover:scale-105 transition-all">
+                                            🗑️ DELETE AFFILIATE
+                                        </button>
+                                        <div class="text-xs text-red-600 mt-1">This will permanently remove all affiliate data</div>
+                                    </div>
+                                </div>
                                 
                                 ${affiliate.withdrawalHistory && affiliate.withdrawalHistory.length > 0 ? `
                                     <div class="mb-4 p-3 bg-purple-50 rounded">
@@ -2754,10 +2776,6 @@
                                     <button onclick="viewAffiliateDetails('${email}')" 
                                             class="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700 flex-1">
                                         📊 View Full Details
-                                    </button>
-                                    <button onclick="confirmDeleteAffiliate('${email}')" 
-                                            class="bg-red-600 text-white px-3 py-2 rounded text-sm hover:bg-red-700 flex-1">
-                                        🗑️ Delete Affiliate
                                     </button>
                                 </div>
                             </div>
@@ -2985,6 +3003,56 @@
             loadAdminInvestments();
             
             alert(`✅ Password Reset Successful!\n\nInvestor: ${investment.fullName}\nEmail: ${investment.email}\n\nOld Password: ${oldPassword}\nNew Password: ${newPassword}\n\nThe investor can now use the new password to access their portfolio.`);
+        }
+
+        async function resetAffiliatePassword(email) {
+            const safeId = email.replace(/[@.]/g, '_');
+            const newPasswordInput = document.getElementById(`newAffiliatePassword_${safeId}`);
+            if (!newPasswordInput) {
+                alert('Error: Password input field not found!');
+                return;
+            }
+            
+            const newPassword = newPasswordInput.value.trim();
+            const affiliate = affiliates[email];
+            
+            if (!affiliate) {
+                alert('Affiliate not found!');
+                return;
+            }
+            
+            if (!newPassword) {
+                alert('Please enter a new password!');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                alert('Password must be at least 6 characters long!');
+                return;
+            }
+            
+            const oldPassword = affiliate.affiliatePassword || 'Not Set';
+            
+            // Update the password
+            affiliate.affiliatePassword = newPassword;
+            
+            // Save changes to Firebase
+            try {
+                await saveToFirebase('affiliates', email, affiliate);
+                updateConnectionStatus('online', 'Affiliate password updated successfully');
+            } catch (error) {
+                console.error('Failed to save affiliate password update to Firebase:', error);
+                updateConnectionStatus('offline', 'Password updated locally only');
+                alert('⚠️ Password updated but failed to save to Firebase. Changes may not persist.');
+            }
+            
+            // Clear the input field
+            newPasswordInput.value = '';
+            
+            // Reload the admin panel to show the new password
+            loadAdminAffiliates();
+            
+            alert(`✅ Affiliate Password Reset Successful!\n\nAffiliate: ${affiliate.name}\nEmail: ${email}\nAffiliate Number: ${affiliate.affiliateNumber}\n\nOld Password: ${oldPassword}\nNew Password: ${newPassword}\n\nThe affiliate can now use the new password to access their dashboard.`);
         }
 
         async function approveInvestment(slotId) {
@@ -4489,8 +4557,8 @@
             
             const availableBalance = totalDividendEarned - totalDividendWithdrawn;
             
-            if (availableBalance < 150) { // Minimum 100 + 20 transfer fee + 30 admin fee
-                alert(`Insufficient dividend balance for withdrawal.\n\nAvailable: ₱${availableBalance.toLocaleString()}\nMinimum: ₱150 (₱100 + ₱20 transfer fee + ₱30 admin fee)\n\nPlease wait for more dividend payments.`);
+            if (availableBalance < 100) { // Minimum withdrawal amount
+                alert(`Insufficient dividend balance for withdrawal.\n\nAvailable: ₱${availableBalance.toLocaleString()}\nMinimum: ₱100\n\nPlease wait for more dividend payments.`);
                 return;
             }
             
@@ -4516,9 +4584,9 @@
                     <div>
                         <label class="block text-sm font-medium mb-2">Withdrawal Amount *</label>
                         <input type="number" id="dividendWithdrawAmount" name="dividendWithdrawAmount" required min="100" step="100" 
-                               max="${availableBalance - 50}" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500" 
+                               max="${availableBalance}" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500" 
                                placeholder="Enter amount to withdraw" onchange="calculateDividendWithdrawalFees()">
-                        <div class="text-xs text-gray-500 mt-1">Minimum withdrawal: ₱100 (plus ₱20 transfer fee + ₱30 admin fee)</div>
+                        <div class="text-xs text-gray-500 mt-1">Minimum withdrawal: ₱100 | Maximum: ₱${availableBalance.toLocaleString()}</div>
                     </div>
                     
                     <div id="dividendWithdrawalBreakdown" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 hidden">
@@ -4820,8 +4888,8 @@
             const [email, affiliate] = affiliateEntry;
             const availableBalance = (affiliate.totalCommissions || 0) - (affiliate.totalWithdrawals || 0);
             
-            if (availableBalance < 150) { // Minimum 100 + 20 transfer fee + 30 admin fee
-                alert(`Insufficient commission balance for withdrawal.\n\nAvailable: ₱${availableBalance.toLocaleString()}\nMinimum: ₱150 (₱100 + ₱20 transfer fee + ₱30 admin fee)\n\nPlease wait for more commission earnings.`);
+            if (availableBalance < 100) { // Minimum withdrawal amount
+                alert(`Insufficient commission balance for withdrawal.\n\nAvailable: ₱${availableBalance.toLocaleString()}\nMinimum: ₱100\n\nPlease wait for more commission earnings.`);
                 return;
             }
             
@@ -4847,9 +4915,9 @@
                     <div>
                         <label class="block text-sm font-medium mb-2">Withdrawal Amount *</label>
                         <input type="number" id="affiliateWithdrawAmount" name="affiliateWithdrawAmount" required min="100" step="100" 
-                               max="${availableBalance - 50}" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500" 
+                               max="${availableBalance}" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500" 
                                placeholder="Enter amount to withdraw" onchange="calculateAffiliateWithdrawalFees()">
-                        <div class="text-xs text-gray-500 mt-1">Minimum withdrawal: ₱100 (plus ₱20 transfer fee + ₱30 admin fee)</div>
+                        <div class="text-xs text-gray-500 mt-1">Minimum withdrawal: ₱100 | Maximum: ₱${availableBalance.toLocaleString()}</div>
                     </div>
                     
                     <div id="affiliateWithdrawalBreakdown" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 hidden">
@@ -6087,5 +6155,5 @@
 
 
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9864570c32879e12',t:'MTc1OTA3NDAzNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98648c5316ec75d5',t:'MTc1OTA3NjIxNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
