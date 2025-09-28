@@ -1397,6 +1397,8 @@
                 // Still initialize the building with empty data
                 investments = {};
                 affiliates = {};
+                withdrawalRequests = {};
+                affiliateWithdrawalRequests = {};
                 initializeBuilding();
                 updateDashboard();
                 return;
@@ -1412,6 +1414,8 @@
                 // Still initialize the building with empty data
                 investments = {};
                 affiliates = {};
+                withdrawalRequests = {};
+                affiliateWithdrawalRequests = {};
                 initializeBuilding();
                 updateDashboard();
                 return;
@@ -1439,7 +1443,7 @@
                     adminCredentials = adminData.credentials;
                 }
                 
-                console.log(`✅ Loaded ${Object.keys(investments).length} investments and ${Object.keys(affiliates).length} affiliates`);
+                console.log(`✅ Loaded ${Object.keys(investments).length} investments, ${Object.keys(affiliates).length} affiliates, ${Object.keys(withdrawalRequests).length} withdrawal requests, and ${Object.keys(affiliateWithdrawalRequests).length} affiliate withdrawal requests`);
                 updateConnectionStatus('online', 'Connected to Firebase');
                 
             } catch (error) {
@@ -1449,6 +1453,8 @@
                 // Initialize with empty data if Firebase fails
                 investments = {};
                 affiliates = {};
+                withdrawalRequests = {};
+                affiliateWithdrawalRequests = {};
             }
             
             // Always initialize the building regardless of Firebase status
@@ -1507,13 +1513,17 @@
             updateConnectionStatus('loading', 'Refreshing data...');
             
             try {
-                const [investmentData, affiliateData] = await Promise.all([
+                const [investmentData, affiliateData, withdrawalData, affiliateWithdrawalData] = await Promise.all([
                     loadFromFirebase('investments'),
-                    loadFromFirebase('affiliates')
+                    loadFromFirebase('affiliates'),
+                    loadFromFirebase('withdrawalRequests'),
+                    loadFromFirebase('affiliateWithdrawalRequests')
                 ]);
                 
                 investments = investmentData || {};
                 affiliates = affiliateData || {};
+                withdrawalRequests = withdrawalData || {};
+                affiliateWithdrawalRequests = affiliateWithdrawalData || {};
                 
                 // Refresh UI
                 initializeBuilding();
@@ -1522,6 +1532,7 @@
                 if (isAdminLoggedIn) {
                     loadAdminInvestments();
                     loadAdminAffiliates();
+                    loadAdminWithdrawals();
                 }
                 
                 updateConnectionStatus('online', 'Data refreshed successfully');
@@ -4117,10 +4128,12 @@
                 try {
                     await saveToFirebase('withdrawalRequests', requestId, requestData);
                     updateConnectionStatus('online', 'Withdrawal request saved');
+                    console.log('✅ Dividend withdrawal request saved to Firebase:', requestId, requestData);
                     
                     alert(`✅ Dividend withdrawal request submitted successfully!\n\nRequest ID: ${requestId}\nGross Amount: ₱${amount.toLocaleString()}\nFees: ₱${totalFees.toLocaleString()}\nNet Amount: ₱${netAmount.toLocaleString()}\nMethod: ${method}\n\nYour request is now pending admin approval. You will be notified once processed.\n\nProcessing time: 1-3 business days after approval.`);
                 } catch (error) {
                     console.error('Failed to save withdrawal request:', error);
+                    updateConnectionStatus('offline', 'Withdrawal request saved locally only');
                     alert('⚠️ Withdrawal request submitted but failed to save to Firebase. Please contact admin if you don\'t see your request.');
                 }
                 
@@ -4185,10 +4198,12 @@
                 try {
                     await saveToFirebase('withdrawalRequests', requestId, requestData);
                     updateConnectionStatus('online', 'Capital withdrawal request saved');
+                    console.log('✅ Capital withdrawal request saved to Firebase:', requestId, requestData);
                     
                     alert(`✅ Capital withdrawal request submitted successfully!\n\nRequest ID: ${requestId}\nUnit: ${investments[slotId].slotNumber || generateSlotNumber(slotId)}\nGross Amount: ₱${capitalAmount.toLocaleString()}\nFees: ₱${totalFees.toLocaleString()}\nNet Amount: ₱${netAmount.toLocaleString()}\nMethod: ${method}\n\n⚠️ IMPORTANT: This request will remove the selected investment unit and stop dividend earnings for it once approved.\n\nProcessing time: 5-7 business days after approval.`);
                 } catch (error) {
                     console.error('Failed to save capital withdrawal request:', error);
+                    updateConnectionStatus('offline', 'Capital withdrawal request saved locally only');
                     alert('⚠️ Capital withdrawal request submitted but failed to save to Firebase. Please contact admin if you don\'t see your request.');
                 }
                 
@@ -4265,10 +4280,12 @@
                 try {
                     await saveToFirebase('affiliateWithdrawalRequests', requestId, requestData);
                     updateConnectionStatus('online', 'Affiliate withdrawal request saved');
+                    console.log('✅ Affiliate withdrawal request saved to Firebase:', requestId, requestData);
                     
                     alert(`✅ Commission withdrawal request submitted successfully!\n\nRequest ID: ${requestId}\nGross Amount: ₱${amount.toLocaleString()}\nFees: ₱${totalFees.toLocaleString()}\nNet Amount: ₱${netAmount.toLocaleString()}\nMethod: ${method}\n\nYour request is now pending admin approval. You will be notified once processed.\n\nProcessing time: 1-3 business days after approval.`);
                 } catch (error) {
                     console.error('Failed to save affiliate withdrawal request:', error);
+                    updateConnectionStatus('offline', 'Affiliate withdrawal request saved locally only');
                     alert('⚠️ Withdrawal request submitted but failed to save to Firebase. Please contact admin if you don\'t see your request.');
                 }
                 
@@ -6166,5 +6183,5 @@
 
 
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9864c02063ff9894',t:'MTc1OTA3ODMzOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98670bf6508ba375',t:'MTc1OTEwMjQxNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
