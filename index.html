@@ -3543,25 +3543,37 @@
                 return;
             }
             
+            console.log('Loading portfolio for email:', email);
+            console.log('Available investments:', Object.keys(investments).length);
+            
             // Find investments for this email
-            const userInvestments = Object.entries(investments).filter(([_, investment]) => 
-                investment.email.toLowerCase() === email.toLowerCase() && investment.status === 'approved'
-            );
+            const userInvestments = Object.entries(investments).filter(([_, investment]) => {
+                const emailMatch = investment.email && investment.email.toLowerCase() === email.toLowerCase();
+                const statusMatch = investment.status === 'approved';
+                console.log(`Checking investment: ${investment.email} vs ${email}, status: ${investment.status}, match: ${emailMatch && statusMatch}`);
+                return emailMatch && statusMatch;
+            });
+            
+            console.log('Found user investments:', userInvestments.length);
             
             if (userInvestments.length === 0) {
-                alert('No approved investments found for this email address');
+                alert('No approved investments found for this email address.\n\nPlease check:\n• Email address is correct\n• Your investments have been approved by admin\n• You have made at least one investment');
                 return;
             }
             
             // Verify password with any of the user's investments
-            const passwordMatch = userInvestments.some(([_, investment]) => 
-                investment.portfolioPassword === password
-            );
+            const passwordMatch = userInvestments.some(([_, investment]) => {
+                const match = investment.portfolioPassword === password;
+                console.log(`Password check: ${investment.portfolioPassword} vs ${password}, match: ${match}`);
+                return match;
+            });
             
             if (!passwordMatch) {
-                alert('Incorrect portfolio password. Please check your password and try again.');
+                alert('Incorrect portfolio password. Please check your password and try again.\n\nNote: This is the password you created during investment registration, not your email password.');
                 return;
             }
+            
+            console.log('Password verified, loading portfolio...');
             
             // Store current user email for withdrawal requests
             currentUserEmail = email;
@@ -3984,7 +3996,7 @@
                 
                 // Calculate fees
                 const transferFee = 20;
-                const adminFee = 25; // Fixed ₱25 admin fee
+                const adminFee = 30; // Fixed ₱30 admin fee
                 const totalFees = transferFee + adminFee;
                 const netAmount = amount - totalFees;
                 
@@ -4130,7 +4142,7 @@
                 
                 // Calculate fees
                 const transferFee = 20;
-                const adminFee = 25; // Fixed ₱25 admin fee
+                const adminFee = 30; // Fixed ₱30 admin fee
                 const totalFees = transferFee + adminFee;
                 const netAmount = amount - totalFees;
                 
@@ -4455,8 +4467,8 @@
             
             const availableBalance = totalDividendEarned - totalDividendWithdrawn;
             
-            if (availableBalance < 145) { // Minimum 100 + 20 transfer fee + 25 admin fee
-                alert(`Insufficient dividend balance for withdrawal.\n\nAvailable: ₱${availableBalance.toLocaleString()}\nMinimum: ₱145 (₱100 + ₱20 transfer fee + ₱25 admin fee)\n\nPlease wait for more dividend payments.`);
+            if (availableBalance < 150) { // Minimum 100 + 20 transfer fee + 30 admin fee
+                alert(`Insufficient dividend balance for withdrawal.\n\nAvailable: ₱${availableBalance.toLocaleString()}\nMinimum: ₱150 (₱100 + ₱20 transfer fee + ₱30 admin fee)\n\nPlease wait for more dividend payments.`);
                 return;
             }
             
@@ -4484,7 +4496,7 @@
                         <input type="number" id="dividendWithdrawAmount" name="dividendWithdrawAmount" required min="100" step="100" 
                                max="${availableBalance - 20}" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500" 
                                placeholder="Enter amount to withdraw" onchange="calculateDividendWithdrawalFees()">
-                        <div class="text-xs text-gray-500 mt-1">Minimum withdrawal: ₱100 (plus ₱20 transfer fee + ₱25 admin fee)</div>
+                        <div class="text-xs text-gray-500 mt-1">Minimum withdrawal: ₱100 (plus ₱20 transfer fee + ₱30 admin fee)</div>
                     </div>
                     
                     <div id="dividendWithdrawalBreakdown" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 hidden">
@@ -4500,7 +4512,7 @@
                             </div>
                             <div class="flex justify-between text-red-600">
                                 <span>Admin Fee:</span>
-                                <span id="dividendAdminFee">-₱25</span>
+                                <span id="dividendAdminFee">-₱30</span>
                             </div>
                             <hr class="border-yellow-300">
                             <div class="flex justify-between font-bold text-lg">
@@ -4554,8 +4566,7 @@
             
             if (amount > 0) {
                 const transferFee = 20;
-                const adminFeeRate = 0.01; // 1%
-                const adminFee = Math.round(amount * adminFeeRate);
+                const adminFee = 30; // Fixed ₱30 admin fee
                 const totalFees = transferFee + adminFee;
                 const netAmount = amount - totalFees;
                 
@@ -4676,9 +4687,9 @@
             const modal = document.getElementById('capitalWithdrawalModal');
             const container = modal.querySelector('.form-container');
             
-            // Calculate fees
+            // Calculate fees - No admin fee for capital withdrawal
             const transferFee = 20;
-            const adminFee = 25; // Fixed ₱25 admin fee
+            const adminFee = 0; // No admin fee for capital withdrawal
             const totalFees = transferFee + adminFee;
             const netAmount = capitalAmount - totalFees;
             
@@ -4787,8 +4798,8 @@
             const [email, affiliate] = affiliateEntry;
             const availableBalance = (affiliate.totalCommissions || 0) - (affiliate.totalWithdrawals || 0);
             
-            if (availableBalance < 145) { // Minimum 100 + 20 transfer fee + 25 admin fee
-                alert(`Insufficient commission balance for withdrawal.\n\nAvailable: ₱${availableBalance.toLocaleString()}\nMinimum: ₱145 (₱100 + ₱20 transfer fee + ₱25 admin fee)\n\nPlease wait for more commission earnings.`);
+            if (availableBalance < 150) { // Minimum 100 + 20 transfer fee + 30 admin fee
+                alert(`Insufficient commission balance for withdrawal.\n\nAvailable: ₱${availableBalance.toLocaleString()}\nMinimum: ₱150 (₱100 + ₱20 transfer fee + ₱30 admin fee)\n\nPlease wait for more commission earnings.`);
                 return;
             }
             
@@ -4816,7 +4827,7 @@
                         <input type="number" id="affiliateWithdrawAmount" name="affiliateWithdrawAmount" required min="100" step="100" 
                                max="${availableBalance - 20}" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500" 
                                placeholder="Enter amount to withdraw" onchange="calculateAffiliateWithdrawalFees()">
-                        <div class="text-xs text-gray-500 mt-1">Minimum withdrawal: ₱100 (plus ₱20 transfer fee + ₱25 admin fee)</div>
+                        <div class="text-xs text-gray-500 mt-1">Minimum withdrawal: ₱100 (plus ₱20 transfer fee + ₱30 admin fee)</div>
                     </div>
                     
                     <div id="affiliateWithdrawalBreakdown" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 hidden">
@@ -4832,7 +4843,7 @@
                             </div>
                             <div class="flex justify-between text-red-600">
                                 <span>Admin Fee:</span>
-                                <span id="affiliateAdminFee">-₱25</span>
+                                <span id="affiliateAdminFee">-₱30</span>
                             </div>
                             <hr class="border-yellow-300">
                             <div class="flex justify-between font-bold text-lg">
@@ -4886,7 +4897,7 @@
             
             if (amount > 0) {
                 const transferFee = 20;
-                const adminFee = 25; // Fixed ₱25 admin fee
+                const adminFee = 30; // Fixed ₱30 admin fee
                 const totalFees = transferFee + adminFee;
                 const netAmount = amount - totalFees;
                 
@@ -5278,17 +5289,55 @@
                                         </div>
                                         <div class="text-sm text-gray-600">${tx.description}</div>
                                         <div class="text-xs text-gray-400">${new Date(tx.date).toLocaleDateString()}</div>
+                                        ${tx.type === 'fee' && tx.transferFee && tx.adminFee ? `
+                                            <div class="text-xs text-purple-600 mt-1">
+                                                Transfer Fee: ₱${tx.transferFee.toLocaleString()} | Admin Fee: ₱${tx.adminFee.toLocaleString()}
+                                            </div>
+                                        ` : ''}
                                     </div>
                                     <div class="text-right">
                                         <div class="font-bold ${tx.amount > 0 ? 'text-green-600' : 'text-red-600'}">
                                             ${tx.amount > 0 ? '+' : ''}₱${Math.abs(tx.amount).toLocaleString()}
                                         </div>
-                                        ${tx.fees ? `<div class="text-xs text-purple-600">Fees: ₱${tx.fees.toLocaleString()}</div>` : ''}
+                                        ${tx.type === 'fee' ? `
+                                            <button onclick="deleteFeeTransaction('${tx.id}')" 
+                                                    class="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 mt-1">
+                                                🗑️ Delete Fee
+                                            </button>
+                                        ` : ''}
                                     </div>
                                 </div>
                             `).join('')}
                         </div>
                     </div>
+                    
+                    <!-- Fee Management Section -->
+                    ${financialData.feeTransactions.length > 0 ? `
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-6 mt-6">
+                            <h5 class="text-lg font-bold text-red-800 mb-4">🗑️ Fee Transaction Management</h5>
+                            <p class="text-red-700 text-sm mb-4">You can delete individual fee transactions if they were collected in error. This will adjust the financial totals accordingly.</p>
+                            <div class="space-y-2 max-h-60 overflow-y-auto">
+                                ${financialData.feeTransactions.map(tx => `
+                                    <div class="bg-white border rounded p-3 flex justify-between items-center">
+                                        <div class="flex-1">
+                                            <div class="font-semibold text-purple-800">${tx.description}</div>
+                                            <div class="text-xs text-gray-500">${new Date(tx.date).toLocaleDateString()}</div>
+                                            <div class="text-xs text-purple-600">
+                                                Transfer: ₱${tx.transferFee.toLocaleString()} | Admin: ₱${tx.adminFee.toLocaleString()}
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="font-bold text-purple-600">₱${tx.amount.toLocaleString()}</div>
+                                            <button onclick="deleteFeeTransaction('${tx.id}')" 
+                                                    class="text-xs bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 mt-1">
+                                                🗑️ Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
             `;
         }
@@ -5300,6 +5349,7 @@
             let totalTransferFees = 0;
             let totalAdminFees = 0;
             const recentTransactions = [];
+            const feeTransactions = []; // Store fee transactions separately for deletion
             
             // Calculate from investments
             Object.values(investments).forEach(investment => {
@@ -5345,38 +5395,52 @@
             });
             
             // Calculate from withdrawal requests (fees)
-            Object.values(withdrawalRequests).forEach(request => {
+            Object.entries(withdrawalRequests).forEach(([requestId, request]) => {
                 if (request.status === 'approved') {
                     const transferFee = request.transferFee || 20;
                     const adminFee = request.adminFee || 30;
                     totalTransferFees += transferFee;
                     totalAdminFees += adminFee;
                     
-                    recentTransactions.push({
+                    const feeTransaction = {
+                        id: `withdrawal_${requestId}`,
                         type: 'fee',
                         amount: transferFee + adminFee,
-                        fees: transferFee + adminFee,
+                        transferFee: transferFee,
+                        adminFee: adminFee,
                         date: request.processedDate || request.timestamp,
-                        description: `Withdrawal fees - ${request.type} withdrawal`
-                    });
+                        description: `Withdrawal fees - ${request.type} withdrawal`,
+                        source: 'withdrawal',
+                        sourceId: requestId
+                    };
+                    
+                    recentTransactions.push(feeTransaction);
+                    feeTransactions.push(feeTransaction);
                 }
             });
             
             // Calculate from affiliate withdrawal requests (fees)
-            Object.values(affiliateWithdrawalRequests).forEach(request => {
+            Object.entries(affiliateWithdrawalRequests).forEach(([requestId, request]) => {
                 if (request.status === 'approved') {
                     const transferFee = request.transferFee || 20;
                     const adminFee = request.adminFee || 30;
                     totalTransferFees += transferFee;
                     totalAdminFees += adminFee;
                     
-                    recentTransactions.push({
+                    const feeTransaction = {
+                        id: `affiliate_${requestId}`,
                         type: 'fee',
                         amount: transferFee + adminFee,
-                        fees: transferFee + adminFee,
+                        transferFee: transferFee,
+                        adminFee: adminFee,
                         date: request.processedDate || request.timestamp,
-                        description: `Commission withdrawal fees - ${request.affiliateName}`
-                    });
+                        description: `Commission withdrawal fees - ${request.affiliateName}`,
+                        source: 'affiliate',
+                        sourceId: requestId
+                    };
+                    
+                    recentTransactions.push(feeTransaction);
+                    feeTransactions.push(feeTransaction);
                 }
             });
             
@@ -5394,8 +5458,53 @@
                 totalAdminFees,
                 totalFeesCollected,
                 netPosition,
-                recentTransactions: recentTransactions.slice(0, 50) // Show last 50 transactions
+                recentTransactions: recentTransactions.slice(0, 50), // Show last 50 transactions
+                feeTransactions: feeTransactions // Include fee transactions for deletion
             };
+        }
+
+        // ===== FEE MANAGEMENT FUNCTIONS =====
+        async function deleteFeeTransaction(feeId) {
+            const confirmMessage = `⚠️ CONFIRM DELETE FEE TRANSACTION ⚠️\n\n` +
+                `This will permanently delete the fee transaction and adjust the financial totals.\n\n` +
+                `Are you sure you want to delete this fee transaction?`;
+            
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+            
+            try {
+                // Parse the fee ID to determine source
+                const [source, requestId] = feeId.split('_', 2);
+                
+                if (source === 'withdrawal' && withdrawalRequests[requestId]) {
+                    // Remove fees from withdrawal request
+                    const request = withdrawalRequests[requestId];
+                    delete request.transferFee;
+                    delete request.adminFee;
+                    
+                    // Save updated request
+                    await saveToFirebase('withdrawalRequests', requestId, request);
+                    
+                } else if (source === 'affiliate' && affiliateWithdrawalRequests[requestId]) {
+                    // Remove fees from affiliate withdrawal request
+                    const request = affiliateWithdrawalRequests[requestId];
+                    delete request.transferFee;
+                    delete request.adminFee;
+                    
+                    // Save updated request
+                    await saveToFirebase('affiliateWithdrawalRequests', requestId, request);
+                }
+                
+                // Refresh the financial statement
+                loadFinancialStatement();
+                
+                alert('✅ Fee transaction deleted successfully!\n\nThe financial totals have been updated to reflect this change.');
+                
+            } catch (error) {
+                console.error('Failed to delete fee transaction:', error);
+                alert('❌ Failed to delete fee transaction. Please try again.');
+            }
         }
 
         // ===== ADMIN SETTINGS FUNCTIONS =====
@@ -5867,5 +5976,5 @@
 
 
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9863c1b3134b1089',t:'MTc1OTA2NzkxNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9863f9b555fa16cd',t:'MTc1OTA3MDIxMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
