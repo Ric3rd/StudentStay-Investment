@@ -823,7 +823,7 @@
 
     <!-- Dividend Withdrawal Request Modal -->
     <div id="dividendWithdrawalModal" class="modal fixed inset-0 z-50 hidden items-center justify-center p-4">
-        <div class="form-container max-w-md w-full p-8">
+        <div class="form-container max-w-md w-full p-8 max-h-[90vh] overflow-y-auto">
             <h3 class="text-2xl font-bold mb-6 text-center">💰 Request Dividend Withdrawal</h3>
             <form id="dividendWithdrawalForm" class="space-y-4">
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
@@ -873,7 +873,7 @@
 
     <!-- Capital Withdrawal Request Modal -->
     <div id="capitalWithdrawalModal" class="modal fixed inset-0 z-50 hidden items-center justify-center p-4">
-        <div class="form-container max-w-md w-full p-8">
+        <div class="form-container max-w-md w-full p-8 max-h-[90vh] overflow-y-auto">
             <h3 class="text-2xl font-bold mb-6 text-center">🏦 Request Capital Withdrawal</h3>
             <form id="capitalWithdrawalForm" class="space-y-4">
                 <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
@@ -933,7 +933,7 @@
 
     <!-- Affiliate Withdrawal Request Modal -->
     <div id="affiliateWithdrawalRequestModal" class="modal fixed inset-0 z-50 hidden items-center justify-center p-4">
-        <div class="form-container max-w-md w-full p-8">
+        <div class="form-container max-w-md w-full p-8 max-h-[90vh] overflow-y-auto">
             <h3 class="text-2xl font-bold mb-6 text-center">💸 Request Commission Withdrawal</h3>
             <form id="affiliateWithdrawalRequestForm" class="space-y-4">
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
@@ -4318,6 +4318,14 @@
             const modal = document.getElementById('dividendWithdrawalModal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+            
+            // Scroll to top of form
+            setTimeout(() => {
+                const formContainer = modal.querySelector('.form-container');
+                if (formContainer) {
+                    formContainer.scrollTop = 0;
+                }
+            }, 100);
         }
         
         function closeDividendWithdrawalModal() {
@@ -4366,6 +4374,14 @@
             const modal = document.getElementById('capitalWithdrawalModal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+            
+            // Scroll to top of form
+            setTimeout(() => {
+                const formContainer = modal.querySelector('.form-container');
+                if (formContainer) {
+                    formContainer.scrollTop = 0;
+                }
+            }, 100);
         }
         
         function closeCapitalWithdrawalModal() {
@@ -4403,6 +4419,14 @@
             const modal = document.getElementById('affiliateWithdrawalRequestModal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+            
+            // Scroll to top of form
+            setTimeout(() => {
+                const formContainer = modal.querySelector('.form-container');
+                if (formContainer) {
+                    formContainer.scrollTop = 0;
+                }
+            }, 100);
         }
         
         function closeAffiliateWithdrawalRequestModal() {
@@ -5018,5 +5042,5 @@
 
 
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9862242eb35b9890',t:'MTc1OTA1MDk4MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98625864b36da9a6',t:'MTc1OTA1MzExOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
