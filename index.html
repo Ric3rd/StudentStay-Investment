@@ -2048,19 +2048,38 @@
                                 
                                 <div class="grid md:grid-cols-2 gap-4 mt-4 pt-4 border-t">
                                     <div class="space-y-3">
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-sm font-medium w-20">Dividend: ₱</span>
-                                            <input type="number" id="dividend_${slotId}" value="${investment.dividendEarned || 0}" 
-                                                   class="w-24 p-2 border rounded text-sm" min="0" step="100">
-                                            <button onclick="updateDividend('${slotId}')" 
-                                                    class="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700">Update</button>
+                                        <div class="bg-blue-50 p-3 rounded">
+                                            <h6 class="font-bold text-blue-800 mb-2">💰 Add Dividend Payment</h6>
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <input type="number" id="newDividend_${slotId}" placeholder="Amount" 
+                                                       class="w-20 p-2 border rounded text-sm" min="0" step="100">
+                                                <input type="date" id="dividendDate_${slotId}" 
+                                                       class="w-32 p-2 border rounded text-sm" value="${new Date().toISOString().split('T')[0]}">
+                                                <button onclick="addDividendTransaction('${slotId}')" 
+                                                        class="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700">Add</button>
+                                            </div>
+                                            <div class="text-xs text-blue-600">Total Earned: ₱${(investment.dividendEarned || 0).toLocaleString()}</div>
                                         </div>
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-sm font-medium w-20">Withdrawn: ₱</span>
-                                            <input type="number" id="withdrawal_${slotId}" value="${investment.dividendWithdrawn || 0}" 
-                                                   class="w-24 p-2 border rounded text-sm" min="0" step="100">
-                                            <button onclick="updateDividendWithdrawn('${slotId}')" 
-                                                    class="bg-orange-600 text-white px-3 py-2 rounded text-sm hover:bg-orange-700">Update</button>
+                                        <div class="bg-orange-50 p-3 rounded">
+                                            <h6 class="font-bold text-orange-800 mb-2">💸 Process Withdrawal</h6>
+                                            <div class="grid grid-cols-2 gap-2 mb-2">
+                                                <input type="number" id="withdrawAmount_${slotId}" placeholder="Amount" 
+                                                       class="p-2 border rounded text-sm" min="0" step="100">
+                                                <input type="date" id="withdrawDate_${slotId}" 
+                                                       class="p-2 border rounded text-sm" value="${new Date().toISOString().split('T')[0]}">
+                                                <select id="withdrawMethod_${slotId}" class="p-2 border rounded text-sm">
+                                                    <option value="">Payment Method</option>
+                                                    <option value="GCash">GCash</option>
+                                                    <option value="Palawan Pay">Palawan Pay</option>
+                                                    <option value="Bank Transfer">Bank Transfer</option>
+                                                    <option value="PayPal">PayPal</option>
+                                                </select>
+                                                <input type="text" id="withdrawRef_${slotId}" placeholder="Reference #" 
+                                                       class="p-2 border rounded text-sm">
+                                            </div>
+                                            <button onclick="addWithdrawalTransaction('${slotId}')" 
+                                                    class="bg-orange-600 text-white px-3 py-2 rounded text-sm hover:bg-orange-700 w-full">Process Withdrawal</button>
+                                            <div class="text-xs text-orange-600 mt-1">Total Withdrawn: ₱${(investment.dividendWithdrawn || 0).toLocaleString()}</div>
                                         </div>
                                     </div>
                                     <div class="flex flex-col justify-center space-y-2">
@@ -2233,37 +2252,38 @@
                                 ` : ''}
                                 
                                 <div class="grid md:grid-cols-2 gap-4 p-3 bg-blue-50 rounded mb-4">
-                                    <div>
-                                        <h5 class="font-semibold mb-2 text-blue-800">💰 Balance Management:</h5>
-                                        <div class="space-y-2">
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-sm w-20">Available:</span>
-                                                <input type="number" id="totalEarned_${safeId}" value="${affiliate.totalCommissions || 0}" 
-                                                       class="w-24 p-1 border rounded text-sm" min="0" step="100">
-                                                <button onclick="updateAffiliateEarnings('${email}')" 
-                                                        class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700">Update</button>
-                                            </div>
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-sm w-20">Pending:</span>
-                                                <input type="number" id="pendingEarned_${safeId}" value="${affiliate.pendingCommissions || 0}" 
-                                                       class="w-24 p-1 border rounded text-sm" min="0" step="100">
-                                                <button onclick="updateAffiliatePending('${email}')" 
-                                                        class="bg-orange-600 text-white px-2 py-1 rounded text-xs hover:bg-orange-700">Update</button>
-                                            </div>
+                                    <div class="bg-green-50 p-3 rounded">
+                                        <h5 class="font-semibold mb-2 text-green-800">💰 Add Commission Payment</h5>
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <input type="number" id="newCommission_${safeId}" placeholder="Amount" 
+                                                   class="w-20 p-2 border rounded text-sm" min="0" step="100">
+                                            <input type="date" id="commissionDate_${safeId}" 
+                                                   class="w-32 p-2 border rounded text-sm" value="${new Date().toISOString().split('T')[0]}">
+                                            <button onclick="addCommissionTransaction('${email}')" 
+                                                    class="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700">Add</button>
                                         </div>
+                                        <div class="text-xs text-green-600">Total Available: ₱${(affiliate.totalCommissions || 0).toLocaleString()}</div>
                                     </div>
-                                    <div>
-                                        <h5 class="font-semibold mb-2 text-red-800">💸 Update Withdrawn:</h5>
-                                        <div class="space-y-2">
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-sm w-20">Withdrawn:</span>
-                                                <input type="number" id="withdrawal_${safeId}" value="${affiliate.totalWithdrawals || 0}" 
-                                                       class="w-24 p-1 border rounded text-sm" min="0" step="100">
-                                                <button onclick="updateWithdrawn('${email}')" 
-                                                        class="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700">Update</button>
-                                            </div>
-                                            <div class="text-xs text-gray-600">Total Withdrawn: ₱${(affiliate.totalWithdrawals || 0).toLocaleString()}</div>
+                                    <div class="bg-red-50 p-3 rounded">
+                                        <h5 class="font-semibold mb-2 text-red-800">💸 Process Withdrawal</h5>
+                                        <div class="grid grid-cols-2 gap-1 mb-2">
+                                            <input type="number" id="affiliateWithdrawAmount_${safeId}" placeholder="Amount" 
+                                                   class="p-2 border rounded text-sm" min="0" step="100">
+                                            <input type="date" id="affiliateWithdrawDate_${safeId}" 
+                                                   class="p-2 border rounded text-sm" value="${new Date().toISOString().split('T')[0]}">
+                                            <select id="affiliateWithdrawMethod_${safeId}" class="p-2 border rounded text-sm">
+                                                <option value="">Payment Method</option>
+                                                <option value="GCash">GCash</option>
+                                                <option value="Palawan Pay">Palawan Pay</option>
+                                                <option value="Bank Transfer">Bank Transfer</option>
+                                                <option value="PayPal">PayPal</option>
+                                            </select>
+                                            <input type="text" id="affiliateWithdrawRef_${safeId}" placeholder="Reference #" 
+                                                   class="p-2 border rounded text-sm">
                                         </div>
+                                        <button onclick="addAffiliateWithdrawalTransaction('${email}')" 
+                                                class="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700 w-full">Process Withdrawal</button>
+                                        <div class="text-xs text-red-600 mt-1">Total Withdrawn: ₱${(affiliate.totalWithdrawals || 0).toLocaleString()}</div>
                                     </div>
                                 </div>
                                 
@@ -2324,48 +2344,153 @@
             }
         }
 
-        async function updateDividend(slotId) {
-            const dividendInput = document.getElementById(`dividend_${slotId}`);
-            const dividendAmount = parseFloat(dividendInput.value) || 0;
+        async function addDividendTransaction(slotId) {
+            const amountInput = document.getElementById(`newDividend_${slotId}`);
+            const dateInput = document.getElementById(`dividendDate_${slotId}`);
             
-            if (investments[slotId]) {
-                investments[slotId].dividendEarned = dividendAmount;
-                await saveData('investments', investments);
-                alert(`Dividend updated to ₱${dividendAmount.toLocaleString()} for ${investments[slotId].fullName}`);
-                loadAdminInvestments(); // Refresh the display
-            }
-        }
-
-        async function updateDividendWithdrawn(slotId) {
-            const withdrawalInput = document.getElementById(`withdrawal_${slotId}`);
-            if (!withdrawalInput) {
-                alert('Error: Withdrawal input field not found!');
+            const amount = parseFloat(amountInput.value) || 0;
+            const date = dateInput.value;
+            
+            if (amount <= 0) {
+                alert('Please enter a valid dividend amount');
                 return;
             }
             
-            const withdrawnAmount = parseFloat(withdrawalInput.value) || 0;
-            const investment = investments[slotId];
+            if (!date) {
+                alert('Please select a date');
+                return;
+            }
             
+            const investment = investments[slotId];
             if (!investment) {
                 alert('Investment not found!');
                 return;
             }
             
-            if (withdrawnAmount < 0) {
-                alert('Withdrawn amount cannot be negative!');
+            // Initialize transaction arrays if they don't exist
+            if (!investment.dividendTransactions) {
+                investment.dividendTransactions = [];
+            }
+            
+            // Add new dividend transaction
+            const transaction = {
+                id: Date.now().toString(),
+                type: 'dividend',
+                amount: amount,
+                date: date,
+                timestamp: new Date().toISOString(),
+                description: 'Dividend payment'
+            };
+            
+            investment.dividendTransactions.push(transaction);
+            
+            // Update total dividend earned
+            investment.dividendEarned = (investment.dividendEarned || 0) + amount;
+            
+            // Save to Firebase
+            try {
+                await saveToFirebase('investments', slotId, investment);
+                updateConnectionStatus('online', 'Dividend transaction saved');
+                
+                // Clear inputs
+                amountInput.value = '';
+                dateInput.value = new Date().toISOString().split('T')[0];
+                
+                // Refresh display
+                loadAdminInvestments();
+                
+                alert(`✅ Dividend transaction added!\n\nInvestor: ${investment.fullName}\nAmount: ₱${amount.toLocaleString()}\nDate: ${new Date(date).toLocaleDateString()}\nNew Total: ₱${investment.dividendEarned.toLocaleString()}`);
+            } catch (error) {
+                console.error('Failed to save dividend transaction:', error);
+                alert('❌ Failed to save dividend transaction to Firebase');
+            }
+        }
+
+        async function addWithdrawalTransaction(slotId) {
+            const amountInput = document.getElementById(`withdrawAmount_${slotId}`);
+            const dateInput = document.getElementById(`withdrawDate_${slotId}`);
+            const methodInput = document.getElementById(`withdrawMethod_${slotId}`);
+            const refInput = document.getElementById(`withdrawRef_${slotId}`);
+            
+            const amount = parseFloat(amountInput.value) || 0;
+            const date = dateInput.value;
+            const method = methodInput.value;
+            const reference = refInput.value.trim();
+            
+            if (amount <= 0) {
+                alert('Please enter a valid withdrawal amount');
                 return;
             }
             
-            // Update the withdrawn amount
-            investment.dividendWithdrawn = withdrawnAmount;
+            if (!date) {
+                alert('Please select a date');
+                return;
+            }
             
-            // Save changes
-            await saveData('investments', investments);
+            if (!method) {
+                alert('Please select a payment method');
+                return;
+            }
             
-            // Reload the admin panel
-            loadAdminInvestments();
+            if (!reference) {
+                alert('Please enter a payment reference');
+                return;
+            }
             
-            alert(`✅ Dividend withdrawn amount updated!\n\nInvestor: ${investment.fullName}\nTotal Withdrawn: ₱${withdrawnAmount.toLocaleString()}\nAvailable Balance: ₱${((investment.dividendEarned || 0) - withdrawnAmount).toLocaleString()}`);
+            const investment = investments[slotId];
+            if (!investment) {
+                alert('Investment not found!');
+                return;
+            }
+            
+            // Check if sufficient balance
+            const availableBalance = (investment.dividendEarned || 0) - (investment.dividendWithdrawn || 0);
+            if (amount > availableBalance) {
+                alert(`Insufficient balance!\nAvailable: ₱${availableBalance.toLocaleString()}\nRequested: ₱${amount.toLocaleString()}`);
+                return;
+            }
+            
+            // Initialize transaction arrays if they don't exist
+            if (!investment.withdrawalTransactions) {
+                investment.withdrawalTransactions = [];
+            }
+            
+            // Add new withdrawal transaction
+            const transaction = {
+                id: Date.now().toString(),
+                type: 'withdrawal',
+                amount: amount,
+                date: date,
+                method: method,
+                reference: reference,
+                timestamp: new Date().toISOString(),
+                description: `Withdrawal via ${method}`
+            };
+            
+            investment.withdrawalTransactions.push(transaction);
+            
+            // Update total dividend withdrawn
+            investment.dividendWithdrawn = (investment.dividendWithdrawn || 0) + amount;
+            
+            // Save to Firebase
+            try {
+                await saveToFirebase('investments', slotId, investment);
+                updateConnectionStatus('online', 'Withdrawal transaction saved');
+                
+                // Clear inputs
+                amountInput.value = '';
+                dateInput.value = new Date().toISOString().split('T')[0];
+                methodInput.value = '';
+                refInput.value = '';
+                
+                // Refresh display
+                loadAdminInvestments();
+                
+                alert(`✅ Withdrawal processed!\n\nInvestor: ${investment.fullName}\nAmount: ₱${amount.toLocaleString()}\nMethod: ${method}\nReference: ${reference}\nDate: ${new Date(date).toLocaleDateString()}\nRemaining Balance: ₱${(availableBalance - amount).toLocaleString()}`);
+            } catch (error) {
+                console.error('Failed to save withdrawal transaction:', error);
+                alert('❌ Failed to save withdrawal transaction to Firebase');
+            }
         }
 
         async function resetInvestorPassword(slotId) {
@@ -2749,61 +2874,155 @@
             }
         }
 
-        async function updateAffiliateEarnings(email) {
+        async function addCommissionTransaction(email) {
             const safeId = email.replace(/[@.]/g, '_');
-            const newAmount = parseFloat(document.getElementById(`totalEarned_${safeId}`).value) || 0;
-            if (affiliates[email]) {
-                affiliates[email].totalCommissions = newAmount;
-                await saveData('affiliates', affiliates);
-                alert(`Total earnings updated to ₱${newAmount.toLocaleString()} for ${affiliates[email].name}`);
-                loadAdminAffiliates();
-            }
-        }
-
-        async function updateAffiliatePending(email) {
-            const safeId = email.replace(/[@.]/g, '_');
-            const newAmount = parseFloat(document.getElementById(`pendingEarned_${safeId}`).value) || 0;
-            if (affiliates[email]) {
-                affiliates[email].pendingCommissions = newAmount;
-                await saveData('affiliates', affiliates);
-                alert(`Pending earnings updated to ₱${newAmount.toLocaleString()} for ${affiliates[email].name}`);
-                loadAdminAffiliates();
-            }
-        }
-
-        async function updateWithdrawn(email) {
-            // Clean email for ID generation
-            const safeId = email.replace(/[@.]/g, '_');
-            const withdrawalInput = document.getElementById(`withdrawal_${safeId}`);
+            const amountInput = document.getElementById(`newCommission_${safeId}`);
+            const dateInput = document.getElementById(`commissionDate_${safeId}`);
             
-            if (!withdrawalInput) {
-                alert('Error: Withdrawal input field not found!');
+            const amount = parseFloat(amountInput.value) || 0;
+            const date = dateInput.value;
+            
+            if (amount <= 0) {
+                alert('Please enter a valid commission amount');
                 return;
             }
             
-            const withdrawnAmount = parseFloat(withdrawalInput.value) || 0;
-            const affiliate = affiliates[email];
+            if (!date) {
+                alert('Please select a date');
+                return;
+            }
             
+            const affiliate = affiliates[email];
             if (!affiliate) {
                 alert('Affiliate not found!');
                 return;
             }
             
-            if (withdrawnAmount < 0) {
-                alert('Withdrawn amount cannot be negative!');
+            // Initialize transaction arrays if they don't exist
+            if (!affiliate.commissionTransactions) {
+                affiliate.commissionTransactions = [];
+            }
+            
+            // Add new commission transaction
+            const transaction = {
+                id: Date.now().toString(),
+                type: 'commission',
+                amount: amount,
+                date: date,
+                timestamp: new Date().toISOString(),
+                description: 'Manual commission payment'
+            };
+            
+            affiliate.commissionTransactions.push(transaction);
+            
+            // Update total commission earned
+            affiliate.totalCommissions = (affiliate.totalCommissions || 0) + amount;
+            
+            // Save to Firebase
+            try {
+                await saveToFirebase('affiliates', email, affiliate);
+                updateConnectionStatus('online', 'Commission transaction saved');
+                
+                // Clear inputs
+                amountInput.value = '';
+                dateInput.value = new Date().toISOString().split('T')[0];
+                
+                // Refresh display
+                loadAdminAffiliates();
+                
+                alert(`✅ Commission transaction added!\n\nAffiliate: ${affiliate.name}\nAmount: ₱${amount.toLocaleString()}\nDate: ${new Date(date).toLocaleDateString()}\nNew Total: ₱${affiliate.totalCommissions.toLocaleString()}`);
+            } catch (error) {
+                console.error('Failed to save commission transaction:', error);
+                alert('❌ Failed to save commission transaction to Firebase');
+            }
+        }
+
+        async function addAffiliateWithdrawalTransaction(email) {
+            const safeId = email.replace(/[@.]/g, '_');
+            const amountInput = document.getElementById(`affiliateWithdrawAmount_${safeId}`);
+            const dateInput = document.getElementById(`affiliateWithdrawDate_${safeId}`);
+            const methodInput = document.getElementById(`affiliateWithdrawMethod_${safeId}`);
+            const refInput = document.getElementById(`affiliateWithdrawRef_${safeId}`);
+            
+            const amount = parseFloat(amountInput.value) || 0;
+            const date = dateInput.value;
+            const method = methodInput.value;
+            const reference = refInput.value.trim();
+            
+            if (amount <= 0) {
+                alert('Please enter a valid withdrawal amount');
                 return;
             }
             
-            // Update the withdrawn amount
-            affiliate.totalWithdrawals = withdrawnAmount;
+            if (!date) {
+                alert('Please select a date');
+                return;
+            }
             
-            // Save changes
-            await saveData('affiliates', affiliates);
+            if (!method) {
+                alert('Please select a payment method');
+                return;
+            }
             
-            // Reload the affiliate panel
-            loadAdminAffiliates();
+            if (!reference) {
+                alert('Please enter a payment reference');
+                return;
+            }
             
-            alert(`✅ Withdrawn amount updated!\n\nAffiliate: ${affiliate.name}\nTotal Withdrawn: ₱${withdrawnAmount.toLocaleString()}`);
+            const affiliate = affiliates[email];
+            if (!affiliate) {
+                alert('Affiliate not found!');
+                return;
+            }
+            
+            // Check if sufficient balance
+            const availableBalance = (affiliate.totalCommissions || 0) - (affiliate.totalWithdrawals || 0);
+            if (amount > availableBalance) {
+                alert(`Insufficient balance!\nAvailable: ₱${availableBalance.toLocaleString()}\nRequested: ₱${amount.toLocaleString()}`);
+                return;
+            }
+            
+            // Initialize transaction arrays if they don't exist
+            if (!affiliate.withdrawalTransactions) {
+                affiliate.withdrawalTransactions = [];
+            }
+            
+            // Add new withdrawal transaction
+            const transaction = {
+                id: Date.now().toString(),
+                type: 'withdrawal',
+                amount: amount,
+                date: date,
+                method: method,
+                reference: reference,
+                timestamp: new Date().toISOString(),
+                description: `Withdrawal via ${method}`
+            };
+            
+            affiliate.withdrawalTransactions.push(transaction);
+            
+            // Update total withdrawals
+            affiliate.totalWithdrawals = (affiliate.totalWithdrawals || 0) + amount;
+            
+            // Save to Firebase
+            try {
+                await saveToFirebase('affiliates', email, affiliate);
+                updateConnectionStatus('online', 'Affiliate withdrawal saved');
+                
+                // Clear inputs
+                amountInput.value = '';
+                dateInput.value = new Date().toISOString().split('T')[0];
+                methodInput.value = '';
+                refInput.value = '';
+                
+                // Refresh display
+                loadAdminAffiliates();
+                
+                alert(`✅ Withdrawal processed!\n\nAffiliate: ${affiliate.name}\nAmount: ₱${amount.toLocaleString()}\nMethod: ${method}\nReference: ${reference}\nDate: ${new Date(date).toLocaleDateString()}\nRemaining Balance: ₱${(availableBalance - amount).toLocaleString()}`);
+            } catch (error) {
+                console.error('Failed to save affiliate withdrawal:', error);
+                alert('❌ Failed to save withdrawal transaction to Firebase');
+            }
         }
 
         function viewAffiliateDetails(email) {
@@ -2937,6 +3156,36 @@
                                 </div>
                                 ${investment.photo ? `<img src="${investment.photo}" alt="Your Photo" class="w-16 h-16 object-cover rounded ml-4">` : ''}
                             </div>
+                            
+                            ${(investment.dividendTransactions && investment.dividendTransactions.length > 0) || (investment.withdrawalTransactions && investment.withdrawalTransactions.length > 0) ? `
+                                <div class="mt-4 pt-4 border-t">
+                                    <h5 class="font-semibold text-gray-700 mb-3">📊 Transaction History</h5>
+                                    <div class="space-y-2 max-h-40 overflow-y-auto">
+                                        ${(investment.dividendTransactions || []).map(tx => `
+                                            <div class="bg-green-50 border border-green-200 rounded p-2 text-sm">
+                                                <div class="flex justify-between items-center">
+                                                    <span class="text-green-800 font-medium">💰 Dividend Payment</span>
+                                                    <span class="text-green-600 font-bold">+₱${tx.amount.toLocaleString()}</span>
+                                                </div>
+                                                <div class="text-xs text-green-600 mt-1">
+                                                    ${new Date(tx.date).toLocaleDateString()} • ${tx.description}
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                        ${(investment.withdrawalTransactions || []).map(tx => `
+                                            <div class="bg-orange-50 border border-orange-200 rounded p-2 text-sm">
+                                                <div class="flex justify-between items-center">
+                                                    <span class="text-orange-800 font-medium">💸 Withdrawal</span>
+                                                    <span class="text-orange-600 font-bold">-₱${tx.amount.toLocaleString()}</span>
+                                                </div>
+                                                <div class="text-xs text-orange-600 mt-1">
+                                                    ${new Date(tx.date).toLocaleDateString()} • ${tx.method} • Ref: ${tx.reference}
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
                         </div>
                     `).join('')}
                 </div>
@@ -3329,10 +3578,75 @@
             document.getElementById('affiliateWithdrawalCount').textContent = (affiliate.withdrawalHistory || []).length;
             document.getElementById('affiliateNumberToCopy').value = affiliate.affiliateNumber;
             
-            // Load referrals list
+            // Load referrals list and transaction history
             const referralsList = document.getElementById('affiliateReferralsList');
+            
+            let content = '';
+            
+            // Add transaction history section
+            const allTransactions = [];
+            
+            // Add commission transactions
+            if (affiliate.commissionTransactions && affiliate.commissionTransactions.length > 0) {
+                allTransactions.push(...affiliate.commissionTransactions.map(tx => ({...tx, category: 'commission'})));
+            }
+            
+            // Add withdrawal transactions
+            if (affiliate.withdrawalTransactions && affiliate.withdrawalTransactions.length > 0) {
+                allTransactions.push(...affiliate.withdrawalTransactions.map(tx => ({...tx, category: 'withdrawal'})));
+            }
+            
+            // Add referral commissions as transactions
             if (affiliate.referrals && affiliate.referrals.length > 0) {
-                referralsList.innerHTML = `
+                allTransactions.push(...affiliate.referrals.filter(ref => ref.status === 'approved').map(ref => ({
+                    id: ref.slotId,
+                    type: 'referral',
+                    category: 'commission',
+                    amount: ref.commission,
+                    date: ref.date,
+                    timestamp: ref.date,
+                    description: `Referral commission from ${ref.investorName}`
+                })));
+            }
+            
+            // Sort transactions by date (newest first)
+            allTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            if (allTransactions.length > 0) {
+                content += `
+                    <div class="mb-6">
+                        <h4 class="text-lg font-bold mb-4">📊 Transaction History</h4>
+                        <div class="space-y-2 max-h-60 overflow-y-auto">
+                            ${allTransactions.map(tx => `
+                                <div class="bg-white border rounded-lg p-3">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex items-center gap-2">
+                                            <span class="${tx.category === 'commission' ? 'text-green-800' : 'text-orange-800'} font-medium">
+                                                ${tx.category === 'commission' ? '💰' : '💸'} 
+                                                ${tx.type === 'referral' ? 'Referral Commission' : 
+                                                  tx.type === 'commission' ? 'Manual Commission' : 
+                                                  'Withdrawal'}
+                                            </span>
+                                            ${tx.method ? `<span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">${tx.method}</span>` : ''}
+                                        </div>
+                                        <span class="${tx.category === 'commission' ? 'text-green-600' : 'text-orange-600'} font-bold">
+                                            ${tx.category === 'commission' ? '+' : '-'}₱${tx.amount.toLocaleString()}
+                                        </span>
+                                    </div>
+                                    <div class="text-xs text-gray-500 mt-1">
+                                        ${new Date(tx.date).toLocaleDateString()} • ${tx.description}
+                                        ${tx.reference ? ` • Ref: ${tx.reference}` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Add referrals section
+            if (affiliate.referrals && affiliate.referrals.length > 0) {
+                content += `
                     <h4 class="text-lg font-bold mb-4">📋 Your Referrals</h4>
                     <div class="space-y-3">
                         ${affiliate.referrals.map(ref => `
@@ -3346,19 +3660,21 @@
                                         <p class="text-sm text-gray-600">Investment: ₱${ref.investmentAmount.toLocaleString()}</p>
                                         <p class="text-sm text-gray-600">Your Commission: ₱${ref.commission.toLocaleString()}</p>
                                         <p class="text-xs text-gray-400">Date: ${new Date(ref.date).toLocaleDateString()}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
                     </div>
-                </div>
-            </div>
-        `).join('')}
-    </div>
-`;
+                `;
             } else {
-                referralsList.innerHTML = `
+                content += `
                     <div class="bg-gray-50 border rounded-lg p-6 text-center">
                         <p class="text-gray-500">No referrals yet. Share your affiliate number to start earning!</p>
                     </div>
                 `;
             }
+            
+            referralsList.innerHTML = content;
             
             // Show dashboard content
             document.getElementById('affiliateDashboardLogin').classList.add('hidden');
@@ -3423,16 +3739,13 @@
                         </div>
                     </div>
                     
-                    <div class="bg-red-50 border border-red-200 rounded-lg p-6">
-                        <h4 class="text-xl font-bold text-red-800 mb-4">⚠️ Danger Zone</h4>
-                        <p class="text-red-700 mb-4">These actions are permanent and cannot be undone!</p>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+                        <h4 class="text-xl font-bold text-green-800 mb-4">🔄 Data Management</h4>
                         <div class="space-y-3">
-                            <button onclick="confirmClearAllData()" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 font-semibold w-full">
-                                🗑️ Clear All Investment Data
+                            <button onclick="refreshData()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-semibold w-full">
+                                🔄 Refresh Data from Firebase
                             </button>
-                            <button onclick="confirmClearAllAffiliates()" class="bg-red-700 text-white px-6 py-3 rounded-lg hover:bg-red-800 font-semibold w-full">
-                                🗑️ Clear All Affiliate Data
-                            </button>
+                            <p class="text-green-700 text-sm">Sync the latest data from Firebase database</p>
                         </div>
                     </div>
                 </div>
@@ -3656,9 +3969,39 @@
                 return;
             }
             
-            // Remove affiliate data
+            console.log('Deleting affiliate:', email);
+            
+            // Remove affiliate from local storage
             delete affiliates[email];
-            await saveData('affiliates', affiliates);
+            
+            // Remove from Firebase
+            let firebaseDeleteSuccess = false;
+            
+            if (isFirebaseConfigured && db) {
+                updateConnectionStatus('loading', 'Deleting affiliate from Firebase...');
+                
+                try {
+                    const docRef = db.collection('affiliates').doc(email);
+                    const doc = await docRef.get();
+                    
+                    if (doc.exists) {
+                        await docRef.delete();
+                        firebaseDeleteSuccess = true;
+                        updateConnectionStatus('online', 'Affiliate deleted from Firebase');
+                        console.log('✅ Affiliate deleted from Firebase:', email);
+                    } else {
+                        firebaseDeleteSuccess = true;
+                        updateConnectionStatus('online', 'Affiliate not found in Firebase (already removed)');
+                        console.log('ℹ️ Affiliate not found in Firebase:', email);
+                    }
+                } catch (error) {
+                    console.error('❌ Failed to delete affiliate from Firebase:', error);
+                    updateConnectionStatus('offline', 'Delete saved locally only');
+                }
+            } else {
+                console.log('⚠️ Firebase not configured, delete saved locally only');
+                updateConnectionStatus('offline', 'Firebase not available');
+            }
             
             // Refresh displays
             setTimeout(() => {
@@ -3667,71 +4010,14 @@
                 }
             }, 100);
             
-            alert(`✅ Affiliate deleted permanently!\n\nAll data for ${affiliate.name} has been removed from the system.`);
-        }
-
-        function confirmClearAllData() {
-            const confirmMessage = `⚠️ CONFIRM CLEAR ALL INVESTMENT DATA ⚠️\n\n` +
-                `This will permanently delete:\n` +
-                `• All ${Object.keys(investments).length} investments\n` +
-                `• All investor information\n` +
-                `• All dividend records\n` +
-                `• Reset all slots to available\n\n` +
-                `This action CANNOT be undone!\n\n` +
-                `Type "CLEAR ALL INVESTMENTS" to confirm:`;
-            
-            const userInput = prompt(confirmMessage);
-            
-            if (userInput === 'CLEAR ALL INVESTMENTS') {
-                clearAllInvestmentData();
+            if (firebaseDeleteSuccess) {
+                alert(`✅ Affiliate deleted permanently from Firebase!\n\nAll data for ${affiliate.name} has been removed from the system.`);
             } else {
-                alert('Clear cancelled. All data remains unchanged.');
+                alert(`⚠️ Affiliate deleted locally but failed to remove from Firebase.\n\nAll data for ${affiliate.name} has been removed locally.\nPlease check your internet connection.`);
             }
         }
 
-        async function clearAllInvestmentData() {
-            investments = {};
-            await saveData('investments', investments);
-            
-            // Reset all slots to available
-            initializeBuilding();
-            updateDashboard();
-            
-            if (isAdminLoggedIn) {
-                loadAdminInvestments();
-            }
-            
-            alert('✅ All investment data cleared successfully!\nAll slots are now available.');
-        }
 
-        function confirmClearAllAffiliates() {
-            const confirmMessage = `⚠️ CONFIRM CLEAR ALL AFFILIATE DATA ⚠️\n\n` +
-                `This will permanently delete:\n` +
-                `• All ${Object.keys(affiliates).length} affiliates\n` +
-                `• All referral records\n` +
-                `• All commission history\n\n` +
-                `This action CANNOT be undone!\n\n` +
-                `Type "CLEAR ALL AFFILIATES" to confirm:`;
-            
-            const userInput = prompt(confirmMessage);
-            
-            if (userInput === 'CLEAR ALL AFFILIATES') {
-                clearAllAffiliateData();
-            } else {
-                alert('Clear cancelled. All data remains unchanged.');
-            }
-        }
-
-        async function clearAllAffiliateData() {
-            affiliates = {};
-            await saveData('affiliates', affiliates);
-            
-            if (isAdminLoggedIn) {
-                loadAdminAffiliates();
-            }
-            
-            alert('✅ All affiliate data cleared successfully!');
-        }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9861980897166e8a',t:'MTc1OTA0NTIzOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9861bb0d311d9894',t:'MTc1OTA0NjY3My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
