@@ -399,6 +399,21 @@
                 </div>
                 
                 <div>
+                    <label class="block text-sm font-medium mb-2">Preferred Currency Display *</label>
+                    <select id="preferredCurrency" name="preferredCurrency" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500" onchange="updateCurrencyDisplay()">
+                        <option value="PHP">Philippine Peso (₱)</option>
+                        <option value="USD">US Dollar ($)</option>
+                        <option value="EUR">Euro (€)</option>
+                        <option value="GBP">British Pound (£)</option>
+                        <option value="JPY">Japanese Yen (¥)</option>
+                        <option value="AUD">Australian Dollar (A$)</option>
+                        <option value="CAD">Canadian Dollar (C$)</option>
+                        <option value="SGD">Singapore Dollar (S$)</option>
+                    </select>
+                    <div class="text-xs text-gray-500 mt-1">This will be used to display amounts in your preferred currency (investment is still in PHP)</div>
+                </div>
+                
+                <div>
                     <label class="block text-sm font-medium mb-2">Mode of Payment *</label>
                     <select id="paymentMode" name="paymentMode" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500" onchange="showPaymentInstructions()">
                         <option value="">Select Payment Method</option>
@@ -474,6 +489,7 @@
                     <button onclick="showAdminTab('investments')" id="adminInvestmentTab" class="px-4 py-2 font-semibold border-b-2 border-blue-600 text-blue-600">Investments</button>
                     <button onclick="showAdminTab('affiliates')" id="adminAffiliateTab" class="px-4 py-2 font-semibold text-gray-500 hover:text-gray-700">Affiliates</button>
                     <button onclick="showAdminTab('withdrawals')" id="adminWithdrawalTab" class="px-4 py-2 font-semibold text-gray-500 hover:text-gray-700">Withdrawals</button>
+                    <button onclick="showAdminTab('financials')" id="adminFinancialTab" class="px-4 py-2 font-semibold text-gray-500 hover:text-gray-700">Financial Statement</button>
                     <button onclick="showAdminTab('settings')" id="adminSettingsTab" class="px-4 py-2 font-semibold text-gray-500 hover:text-gray-700">Settings</button>
                 </div>
                 
@@ -487,6 +503,10 @@
                 
                 <div id="adminWithdrawalContent" class="space-y-4 hidden">
                     <!-- Withdrawal requests will be loaded here -->
+                </div>
+                
+                <div id="adminFinancialContent" class="space-y-4 hidden">
+                    <!-- Financial statement will be loaded here -->
                 </div>
                 
                 <div id="adminSettingsContent" class="space-y-4 hidden">
@@ -1086,6 +1106,19 @@
         let isOnline = false;
         let currentUserEmail = '';
         let currentAffiliateNumber = '';
+        
+        // ===== CURRENCY EXCHANGE =====
+        let exchangeRates = {
+            PHP: 1,
+            USD: 0.018,
+            EUR: 0.016,
+            GBP: 0.014,
+            JPY: 2.65,
+            AUD: 0.027,
+            CAD: 0.024,
+            SGD: 0.024
+        };
+        let currentCurrency = 'PHP';
 
         // ===== FIREBASE FUNCTIONS =====
         
@@ -1501,11 +1534,97 @@
             floor1: { slots: 50, price: 500, name: "Micro", icon: "🏠", slotsPerRow: 5 }
         };
 
+        // ===== CURRENCY FUNCTIONS =====
+        
+        // Fetch live exchange rates
+        async function fetchExchangeRates() {
+            try {
+                // Using a free API for exchange rates (you can replace with your preferred service)
+                const response = await fetch('https://api.exchangerate-api.com/v4/latest/PHP');
+                const data = await response.json();
+                
+                if (data && data.rates) {
+                    exchangeRates = {
+                        PHP: 1,
+                        USD: data.rates.USD || 0.018,
+                        EUR: data.rates.EUR || 0.016,
+                        GBP: data.rates.GBP || 0.014,
+                        JPY: data.rates.JPY || 2.65,
+                        AUD: data.rates.AUD || 0.027,
+                        CAD: data.rates.CAD || 0.024,
+                        SGD: data.rates.SGD || 0.024
+                    };
+                    console.log('✅ Exchange rates updated:', exchangeRates);
+                }
+            } catch (error) {
+                console.log('⚠️ Failed to fetch live exchange rates, using default rates');
+            }
+        }
+        
+        // Convert PHP amount to selected currency
+        function convertCurrency(phpAmount, targetCurrency = currentCurrency) {
+            if (targetCurrency === 'PHP') return phpAmount;
+            const rate = exchangeRates[targetCurrency] || exchangeRates.USD;
+            return Math.round(phpAmount * rate * 100) / 100;
+        }
+        
+        // Format currency display
+        function formatCurrency(phpAmount, targetCurrency = currentCurrency) {
+            const convertedAmount = convertCurrency(phpAmount, targetCurrency);
+            const symbols = {
+                PHP: '₱',
+                USD: '$',
+                EUR: '€',
+                GBP: '£',
+                JPY: '¥',
+                AUD: 'A$',
+                CAD: 'C$',
+                SGD: 'S$'
+            };
+            
+            const symbol = symbols[targetCurrency] || '₱';
+            
+            if (targetCurrency === 'JPY') {
+                return `${symbol}${Math.round(convertedAmount).toLocaleString()}`;
+            } else {
+                return `${symbol}${convertedAmount.toLocaleString()}`;
+            }
+        }
+        
+        // Update currency display in investment form
+        function updateCurrencyDisplay() {
+            const selectedCurrency = document.getElementById('preferredCurrency')?.value || 'PHP';
+            currentCurrency = selectedCurrency;
+            
+            // Update investment form header if it exists
+            const investmentAmount = parseInt(document.getElementById('investmentAmount')?.value || 0);
+            if (investmentAmount > 0) {
+                const headerDiv = document.getElementById('investmentFormHeader');
+                if (headerDiv) {
+                    const amountDisplay = headerDiv.querySelector('.text-xl.font-bold.text-green-600');
+                    if (amountDisplay) {
+                        if (selectedCurrency === 'PHP') {
+                            amountDisplay.textContent = `₱${investmentAmount.toLocaleString()}`;
+                        } else {
+                            const convertedAmount = formatCurrency(investmentAmount, selectedCurrency);
+                            amountDisplay.innerHTML = `${convertedAmount}<br><small class="text-sm text-gray-500">(₱${investmentAmount.toLocaleString()} PHP)</small>`;
+                        }
+                    }
+                }
+            }
+        }
+
         // ===== INITIALIZATION =====
         document.addEventListener('DOMContentLoaded', function() {
+            // Fetch exchange rates first
+            fetchExchangeRates();
+            
             initializeData();
             // Show welcome modal on page load
             showWelcomeModal();
+            
+            // Update exchange rates every hour
+            setInterval(fetchExchangeRates, 3600000);
         });
 
         // ===== WELCOME MODAL FUNCTIONS =====
@@ -2290,11 +2409,13 @@
             document.getElementById('adminInvestmentContent').classList.add('hidden');
             document.getElementById('adminAffiliateContent').classList.add('hidden');
             document.getElementById('adminWithdrawalContent').classList.add('hidden');
+            document.getElementById('adminFinancialContent').classList.add('hidden');
             document.getElementById('adminSettingsContent').classList.add('hidden');
             
             document.getElementById('adminInvestmentTab').className = 'px-4 py-2 font-semibold text-gray-500 hover:text-gray-700';
             document.getElementById('adminAffiliateTab').className = 'px-4 py-2 font-semibold text-gray-500 hover:text-gray-700';
             document.getElementById('adminWithdrawalTab').className = 'px-4 py-2 font-semibold text-gray-500 hover:text-gray-700';
+            document.getElementById('adminFinancialTab').className = 'px-4 py-2 font-semibold text-gray-500 hover:text-gray-700';
             document.getElementById('adminSettingsTab').className = 'px-4 py-2 font-semibold text-gray-500 hover:text-gray-700';
             
             // Show selected tab
@@ -2310,6 +2431,10 @@
                 document.getElementById('adminWithdrawalContent').classList.remove('hidden');
                 document.getElementById('adminWithdrawalTab').className = 'px-4 py-2 font-semibold border-b-2 border-blue-600 text-blue-600';
                 loadAdminWithdrawals();
+            } else if (tabName === 'financials') {
+                document.getElementById('adminFinancialContent').classList.remove('hidden');
+                document.getElementById('adminFinancialTab').className = 'px-4 py-2 font-semibold border-b-2 border-blue-600 text-blue-600';
+                loadFinancialStatement();
             } else if (tabName === 'settings') {
                 document.getElementById('adminSettingsContent').classList.remove('hidden');
                 document.getElementById('adminSettingsTab').className = 'px-4 py-2 font-semibold border-b-2 border-blue-600 text-blue-600';
@@ -3838,196 +3963,216 @@
         }
 
         // Handle dividend withdrawal form submission
-        document.getElementById('dividendWithdrawalForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const amount = parseFloat(formData.get('dividendWithdrawAmount'));
-            const method = formData.get('dividendWithdrawMethod');
-            const accountDetails = formData.get('dividendWithdrawAccount');
-            
-            if (!amount || amount < 100) {
-                alert('Please enter a valid withdrawal amount (minimum ₱100)');
-                return;
-            }
-            
-            if (!method || !accountDetails) {
-                alert('Please fill in all required fields');
-                return;
-            }
-            
-            // Generate unique request ID
-            const requestId = `div_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            
-            const requestData = {
-                id: requestId,
-                type: 'dividend',
-                email: currentUserEmail,
-                amount: amount,
-                method: method,
-                accountDetails: accountDetails,
-                status: 'pending',
-                timestamp: new Date().toISOString(),
-                adminNotes: ''
-            };
-            
-            // Add to local storage
-            withdrawalRequests[requestId] = requestData;
-            
-            // Save to Firebase
-            try {
-                await saveToFirebase('withdrawalRequests', requestId, requestData);
-                updateConnectionStatus('online', 'Withdrawal request saved');
+        document.addEventListener('submit', async function(e) {
+            if (e.target.id === 'dividendWithdrawalForm') {
+                e.preventDefault();
                 
-                alert(`✅ Dividend withdrawal request submitted successfully!\n\nRequest ID: ${requestId}\nAmount: ₱${amount.toLocaleString()}\nMethod: ${method}\n\nYour request is now pending admin approval. You will be notified once processed.\n\nProcessing time: 1-3 business days after approval.`);
-            } catch (error) {
-                console.error('Failed to save withdrawal request:', error);
-                alert('⚠️ Withdrawal request submitted but failed to save to Firebase. Please contact admin if you don\'t see your request.');
-            }
-            
-            closeDividendWithdrawalModal();
-            
-            // Refresh portfolio to show new request
-            if (currentUserEmail) {
-                setTimeout(() => {
-                    loadPortfolio();
-                }, 1000);
+                const amount = parseFloat(document.getElementById('dividendWithdrawAmount').value);
+                const method = document.getElementById('dividendWithdrawMethod').value;
+                const accountDetails = document.getElementById('dividendWithdrawAccount').value;
+                
+                if (!amount || amount < 100) {
+                    alert('Please enter a valid withdrawal amount (minimum ₱100)');
+                    return;
+                }
+                
+                if (!method || !accountDetails) {
+                    alert('Please fill in all required fields');
+                    return;
+                }
+                
+                // Calculate fees
+                const transferFee = 20;
+                const adminFee = Math.round(amount * 0.01);
+                const totalFees = transferFee + adminFee;
+                const netAmount = amount - totalFees;
+                
+                // Generate unique request ID
+                const requestId = `div_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                
+                const requestData = {
+                    id: requestId,
+                    type: 'dividend',
+                    email: currentUserEmail,
+                    grossAmount: amount,
+                    transferFee: transferFee,
+                    adminFee: adminFee,
+                    netAmount: netAmount,
+                    method: method,
+                    accountDetails: accountDetails,
+                    status: 'pending',
+                    timestamp: new Date().toISOString(),
+                    adminNotes: ''
+                };
+                
+                // Add to local storage
+                withdrawalRequests[requestId] = requestData;
+                
+                // Save to Firebase
+                try {
+                    await saveToFirebase('withdrawalRequests', requestId, requestData);
+                    updateConnectionStatus('online', 'Withdrawal request saved');
+                    
+                    alert(`✅ Dividend withdrawal request submitted successfully!\n\nRequest ID: ${requestId}\nGross Amount: ₱${amount.toLocaleString()}\nFees: ₱${totalFees.toLocaleString()}\nNet Amount: ₱${netAmount.toLocaleString()}\nMethod: ${method}\n\nYour request is now pending admin approval. You will be notified once processed.\n\nProcessing time: 1-3 business days after approval.`);
+                } catch (error) {
+                    console.error('Failed to save withdrawal request:', error);
+                    alert('⚠️ Withdrawal request submitted but failed to save to Firebase. Please contact admin if you don\'t see your request.');
+                }
+                
+                closeDividendWithdrawalModal();
+                
+                // Refresh portfolio to show new request
+                if (currentUserEmail) {
+                    setTimeout(() => {
+                        loadPortfolio();
+                    }, 1000);
+                }
             }
         });
 
         // Handle capital withdrawal form submission
-        document.getElementById('capitalWithdrawalForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const method = formData.get('capitalWithdrawMethod');
-            const accountDetails = formData.get('capitalWithdrawAccount');
-            const reason = formData.get('capitalWithdrawReason');
-            
-            if (!method || !accountDetails) {
-                alert('Please fill in all required fields');
-                return;
-            }
-            
-            // Calculate total capital
-            const userInvestments = Object.entries(investments).filter(([_, investment]) => 
-                investment.email.toLowerCase() === currentUserEmail.toLowerCase() && investment.status === 'approved'
-            );
-            
-            let totalCapital = 0;
-            const slotIds = [];
-            userInvestments.forEach(([slotId, investment]) => {
-                totalCapital += parseInt(investment.investmentAmount);
-                slotIds.push(slotId);
-            });
-            
-            // Generate unique request ID
-            const requestId = `cap_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            
-            const requestData = {
-                id: requestId,
-                type: 'capital',
-                email: currentUserEmail,
-                amount: totalCapital,
-                method: method,
-                accountDetails: accountDetails,
-                reason: reason,
-                slotIds: slotIds,
-                status: 'pending',
-                timestamp: new Date().toISOString(),
-                adminNotes: ''
-            };
-            
-            // Add to local storage
-            withdrawalRequests[requestId] = requestData;
-            
-            // Save to Firebase
-            try {
-                await saveToFirebase('withdrawalRequests', requestId, requestData);
-                updateConnectionStatus('online', 'Capital withdrawal request saved');
+        document.addEventListener('submit', async function(e) {
+            if (e.target.id === 'capitalWithdrawalForm') {
+                e.preventDefault();
                 
-                alert(`✅ Capital withdrawal request submitted successfully!\n\nRequest ID: ${requestId}\nAmount: ₱${totalCapital.toLocaleString()}\nMethod: ${method}\n\n⚠️ IMPORTANT: This request will remove ALL your investment units and stop future dividend earnings once approved.\n\nProcessing time: 5-7 business days after approval.`);
-            } catch (error) {
-                console.error('Failed to save capital withdrawal request:', error);
-                alert('⚠️ Capital withdrawal request submitted but failed to save to Firebase. Please contact admin if you don\'t see your request.');
-            }
-            
-            closeCapitalWithdrawalModal();
-            
-            // Refresh portfolio to show new request
-            if (currentUserEmail) {
-                setTimeout(() => {
-                    loadPortfolio();
-                }, 1000);
+                const slotId = document.getElementById('selectedSlotId').value;
+                const capitalAmount = parseInt(document.getElementById('selectedCapitalAmount').value);
+                const method = document.getElementById('capitalWithdrawMethod').value;
+                const accountDetails = document.getElementById('capitalWithdrawAccount').value;
+                const reason = document.getElementById('capitalWithdrawReason').value;
+                
+                if (!method || !accountDetails) {
+                    alert('Please fill in all required fields');
+                    return;
+                }
+                
+                // Calculate fees
+                const transferFee = 20;
+                const adminFee = Math.round(capitalAmount * 0.01);
+                const totalFees = transferFee + adminFee;
+                const netAmount = capitalAmount - totalFees;
+                
+                // Generate unique request ID
+                const requestId = `cap_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                
+                const requestData = {
+                    id: requestId,
+                    type: 'capital',
+                    email: currentUserEmail,
+                    slotId: slotId,
+                    grossAmount: capitalAmount,
+                    transferFee: transferFee,
+                    adminFee: adminFee,
+                    netAmount: netAmount,
+                    method: method,
+                    accountDetails: accountDetails,
+                    reason: reason,
+                    status: 'pending',
+                    timestamp: new Date().toISOString(),
+                    adminNotes: ''
+                };
+                
+                // Add to local storage
+                withdrawalRequests[requestId] = requestData;
+                
+                // Save to Firebase
+                try {
+                    await saveToFirebase('withdrawalRequests', requestId, requestData);
+                    updateConnectionStatus('online', 'Capital withdrawal request saved');
+                    
+                    alert(`✅ Capital withdrawal request submitted successfully!\n\nRequest ID: ${requestId}\nUnit: ${investments[slotId].slotNumber || generateSlotNumber(slotId)}\nGross Amount: ₱${capitalAmount.toLocaleString()}\nFees: ₱${totalFees.toLocaleString()}\nNet Amount: ₱${netAmount.toLocaleString()}\nMethod: ${method}\n\n⚠️ IMPORTANT: This request will remove the selected investment unit and stop dividend earnings for it once approved.\n\nProcessing time: 5-7 business days after approval.`);
+                } catch (error) {
+                    console.error('Failed to save capital withdrawal request:', error);
+                    alert('⚠️ Capital withdrawal request submitted but failed to save to Firebase. Please contact admin if you don\'t see your request.');
+                }
+                
+                closeCapitalWithdrawalModal();
+                
+                // Refresh portfolio to show new request
+                if (currentUserEmail) {
+                    setTimeout(() => {
+                        loadPortfolio();
+                    }, 1000);
+                }
             }
         });
 
         // Handle affiliate withdrawal form submission
-        document.getElementById('affiliateWithdrawalRequestForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const amount = parseFloat(formData.get('affiliateWithdrawAmount'));
-            const method = formData.get('affiliateWithdrawMethodReq');
-            const accountDetails = formData.get('affiliateWithdrawAccountReq');
-            
-            if (!amount || amount < 100) {
-                alert('Please enter a valid withdrawal amount (minimum ₱100)');
-                return;
-            }
-            
-            if (!method || !accountDetails) {
-                alert('Please fill in all required fields');
-                return;
-            }
-            
-            // Find affiliate data
-            const affiliateEntry = Object.entries(affiliates).find(([_, aff]) => aff.affiliateNumber === currentAffiliateNumber);
-            
-            if (!affiliateEntry) {
-                alert('Affiliate data not found');
-                return;
-            }
-            
-            const [email, affiliate] = affiliateEntry;
-            
-            // Generate unique request ID
-            const requestId = `aff_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            
-            const requestData = {
-                id: requestId,
-                affiliateNumber: currentAffiliateNumber,
-                affiliateName: affiliate.name,
-                email: email,
-                amount: amount,
-                method: method,
-                accountDetails: accountDetails,
-                status: 'pending',
-                timestamp: new Date().toISOString(),
-                adminNotes: ''
-            };
-            
-            // Add to local storage
-            affiliateWithdrawalRequests[requestId] = requestData;
-            
-            // Save to Firebase
-            try {
-                await saveToFirebase('affiliateWithdrawalRequests', requestId, requestData);
-                updateConnectionStatus('online', 'Affiliate withdrawal request saved');
+        document.addEventListener('submit', async function(e) {
+            if (e.target.id === 'affiliateWithdrawalRequestForm') {
+                e.preventDefault();
                 
-                alert(`✅ Commission withdrawal request submitted successfully!\n\nRequest ID: ${requestId}\nAmount: ₱${amount.toLocaleString()}\nMethod: ${method}\n\nYour request is now pending admin approval. You will be notified once processed.\n\nProcessing time: 1-3 business days after approval.`);
-            } catch (error) {
-                console.error('Failed to save affiliate withdrawal request:', error);
-                alert('⚠️ Withdrawal request submitted but failed to save to Firebase. Please contact admin if you don\'t see your request.');
-            }
-            
-            closeAffiliateWithdrawalRequestModal();
-            
-            // Refresh affiliate dashboard to show new request
-            if (currentAffiliateNumber) {
-                setTimeout(() => {
-                    loadAffiliateDashboard();
-                }, 1000);
+                const amount = parseFloat(document.getElementById('affiliateWithdrawAmount').value);
+                const method = document.getElementById('affiliateWithdrawMethodReq').value;
+                const accountDetails = document.getElementById('affiliateWithdrawAccountReq').value;
+                
+                if (!amount || amount < 100) {
+                    alert('Please enter a valid withdrawal amount (minimum ₱100)');
+                    return;
+                }
+                
+                if (!method || !accountDetails) {
+                    alert('Please fill in all required fields');
+                    return;
+                }
+                
+                // Find affiliate data
+                const affiliateEntry = Object.entries(affiliates).find(([_, aff]) => aff.affiliateNumber === currentAffiliateNumber);
+                
+                if (!affiliateEntry) {
+                    alert('Affiliate data not found');
+                    return;
+                }
+                
+                const [email, affiliate] = affiliateEntry;
+                
+                // Calculate fees
+                const transferFee = 20;
+                const adminFee = Math.round(amount * 0.01);
+                const totalFees = transferFee + adminFee;
+                const netAmount = amount - totalFees;
+                
+                // Generate unique request ID
+                const requestId = `aff_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                
+                const requestData = {
+                    id: requestId,
+                    affiliateNumber: currentAffiliateNumber,
+                    affiliateName: affiliate.name,
+                    email: email,
+                    grossAmount: amount,
+                    transferFee: transferFee,
+                    adminFee: adminFee,
+                    netAmount: netAmount,
+                    method: method,
+                    accountDetails: accountDetails,
+                    status: 'pending',
+                    timestamp: new Date().toISOString(),
+                    adminNotes: ''
+                };
+                
+                // Add to local storage
+                affiliateWithdrawalRequests[requestId] = requestData;
+                
+                // Save to Firebase
+                try {
+                    await saveToFirebase('affiliateWithdrawalRequests', requestId, requestData);
+                    updateConnectionStatus('online', 'Affiliate withdrawal request saved');
+                    
+                    alert(`✅ Commission withdrawal request submitted successfully!\n\nRequest ID: ${requestId}\nGross Amount: ₱${amount.toLocaleString()}\nFees: ₱${totalFees.toLocaleString()}\nNet Amount: ₱${netAmount.toLocaleString()}\nMethod: ${method}\n\nYour request is now pending admin approval. You will be notified once processed.\n\nProcessing time: 1-3 business days after approval.`);
+                } catch (error) {
+                    console.error('Failed to save affiliate withdrawal request:', error);
+                    alert('⚠️ Withdrawal request submitted but failed to save to Firebase. Please contact admin if you don\'t see your request.');
+                }
+                
+                closeAffiliateWithdrawalRequestModal();
+                
+                // Refresh affiliate dashboard to show new request
+                if (currentAffiliateNumber) {
+                    setTimeout(() => {
+                        loadAffiliateDashboard();
+                    }, 1000);
+                }
             }
         });
 
@@ -4307,25 +4452,119 @@
             
             const availableBalance = totalDividendEarned - totalDividendWithdrawn;
             
-            if (availableBalance < 100) {
-                alert(`Insufficient dividend balance for withdrawal.\n\nAvailable: ₱${availableBalance.toLocaleString()}\nMinimum: ₱100\n\nPlease wait for more dividend payments.`);
+            if (availableBalance < 120) { // Minimum 100 + 20 transfer fee
+                alert(`Insufficient dividend balance for withdrawal.\n\nAvailable: ₱${availableBalance.toLocaleString()}\nMinimum: ₱120 (₱100 + ₱20 transfer fee)\n\nPlease wait for more dividend payments.`);
                 return;
             }
             
-            document.getElementById('availableDividendBalance').textContent = `₱${availableBalance.toLocaleString()}`;
-            document.getElementById('dividendWithdrawAmount').max = availableBalance;
-            
+            // Show dividend withdrawal form with fees
+            showDividendWithdrawalForm(availableBalance);
+        }
+        
+        function showDividendWithdrawalForm(availableBalance) {
             const modal = document.getElementById('dividendWithdrawalModal');
+            const container = modal.querySelector('.form-container');
+            
+            container.innerHTML = `
+                <h3 class="text-2xl font-bold mb-6 text-center">💰 Request Dividend Withdrawal</h3>
+                
+                <form id="dividendWithdrawalForm" class="space-y-4">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <div class="text-center">
+                            <div class="text-lg font-bold text-blue-800 mb-2">Available Balance</div>
+                            <div class="text-3xl font-bold text-green-600" id="availableDividendBalance">₱${availableBalance.toLocaleString()}</div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Withdrawal Amount *</label>
+                        <input type="number" id="dividendWithdrawAmount" name="dividendWithdrawAmount" required min="100" step="100" 
+                               max="${availableBalance - 20}" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500" 
+                               placeholder="Enter amount to withdraw" onchange="calculateDividendWithdrawalFees()">
+                        <div class="text-xs text-gray-500 mt-1">Minimum withdrawal: ₱100 (plus ₱20 transfer fee)</div>
+                    </div>
+                    
+                    <div id="dividendWithdrawalBreakdown" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 hidden">
+                        <div class="text-yellow-800 font-bold mb-3">💰 Withdrawal Breakdown</div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span>Withdrawal Amount:</span>
+                                <span class="font-semibold" id="dividendGrossAmount">₱0</span>
+                            </div>
+                            <div class="flex justify-between text-red-600">
+                                <span>Transfer Fee:</span>
+                                <span id="dividendTransferFee">-₱20</span>
+                            </div>
+                            <div class="flex justify-between text-red-600">
+                                <span>Admin Fee (1%):</span>
+                                <span id="dividendAdminFee">-₱0</span>
+                            </div>
+                            <hr class="border-yellow-300">
+                            <div class="flex justify-between font-bold text-lg">
+                                <span>Net Amount:</span>
+                                <span class="text-green-600" id="dividendNetAmount">₱0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Withdrawal Method *</label>
+                        <select id="dividendWithdrawMethod" name="dividendWithdrawMethod" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500">
+                            <option value="">Select withdrawal method</option>
+                            <option value="GCash">GCash</option>
+                            <option value="Palawan Pay">Palawan Pay</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="PayPal">PayPal</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Account Details *</label>
+                        <textarea id="dividendWithdrawAccount" name="dividendWithdrawAccount" required 
+                                  placeholder="Enter account number, name, etc." 
+                                  class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 h-20"></textarea>
+                    </div>
+                    
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div class="text-yellow-800 font-semibold mb-2">⏰ Processing Time</div>
+                        <p class="text-yellow-700 text-sm">Withdrawals are credited within 1-3 business days after approval by admin.</p>
+                    </div>
+                    
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" onclick="closeDividendWithdrawalModal()" class="flex-1 bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600 transition-colors">Cancel</button>
+                        <button type="submit" class="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors">Submit Request</button>
+                    </div>
+                </form>
+            `;
+            
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             
             // Scroll to top of form
             setTimeout(() => {
-                const formContainer = modal.querySelector('.form-container');
-                if (formContainer) {
-                    formContainer.scrollTop = 0;
-                }
+                container.scrollTop = 0;
             }, 100);
+        }
+        
+        function calculateDividendWithdrawalFees() {
+            const amount = parseFloat(document.getElementById('dividendWithdrawAmount').value) || 0;
+            
+            if (amount > 0) {
+                const transferFee = 20;
+                const adminFeeRate = 0.01; // 1%
+                const adminFee = Math.round(amount * adminFeeRate);
+                const totalFees = transferFee + adminFee;
+                const netAmount = amount - totalFees;
+                
+                document.getElementById('dividendGrossAmount').textContent = `₱${amount.toLocaleString()}`;
+                document.getElementById('dividendTransferFee').textContent = `-₱${transferFee.toLocaleString()}`;
+                document.getElementById('dividendAdminFee').textContent = `-₱${adminFee.toLocaleString()}`;
+                document.getElementById('dividendNetAmount').textContent = `₱${netAmount.toLocaleString()}`;
+                
+                document.getElementById('dividendWithdrawalBreakdown').classList.remove('hidden');
+            } else {
+                document.getElementById('dividendWithdrawalBreakdown').classList.add('hidden');
+            }
         }
         
         function closeDividendWithdrawalModal() {
@@ -4341,46 +4580,184 @@
                 return;
             }
             
-            // Calculate total capital investment
+            // Get user investments
             const userInvestments = Object.entries(investments).filter(([_, investment]) => 
                 investment.email.toLowerCase() === currentUserEmail.toLowerCase() && investment.status === 'approved'
             );
             
-            let totalCapital = 0;
-            userInvestments.forEach(([_, investment]) => {
-                totalCapital += parseInt(investment.investmentAmount);
-            });
-            
-            if (totalCapital === 0) {
+            if (userInvestments.length === 0) {
                 alert('No capital investment found for withdrawal.');
                 return;
             }
             
-            // Show confirmation dialog first
-            const confirmMessage = `⚠️ CAPITAL WITHDRAWAL WARNING ⚠️\n\n` +
-                `Total Capital: ₱${totalCapital.toLocaleString()}\n\n` +
-                `This action will:\n` +
-                `• Stop ALL future dividend earnings\n` +
-                `• Remove ALL your investment units\n` +
+            // Show unit selection modal first
+            showCapitalWithdrawalUnitSelection(userInvestments);
+        }
+        
+        function showCapitalWithdrawalUnitSelection(userInvestments) {
+            const modal = document.getElementById('capitalWithdrawalModal');
+            const container = modal.querySelector('.form-container');
+            
+            container.innerHTML = `
+                <h3 class="text-2xl font-bold mb-6 text-center">🏦 Select Investment Unit to Withdraw</h3>
+                
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                    <div class="text-red-800 font-bold mb-2">⚠️ CAPITAL WITHDRAWAL WARNING</div>
+                    <p class="text-red-700 text-sm">Withdrawing capital will stop dividend earnings for the selected unit and remove it permanently.</p>
+                </div>
+                
+                <div class="space-y-4 max-h-60 overflow-y-auto mb-6">
+                    ${userInvestments.map(([slotId, investment]) => `
+                        <div class="bg-white border-2 border-gray-200 hover:border-blue-500 rounded-lg p-4 cursor-pointer transition-all" 
+                             onclick="selectUnitForWithdrawal('${slotId}', ${parseInt(investment.investmentAmount)})">
+                            <div class="flex justify-between items-center">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="font-bold text-lg font-mono">${investment.slotNumber || generateSlotNumber(slotId)}</span>
+                                        <span class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">${investment.floorInfo}</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600">Investment: ₱${parseInt(investment.investmentAmount).toLocaleString()}</p>
+                                    <p class="text-sm text-gray-600">Dividend Earned: ₱${(investment.dividendEarned || 0).toLocaleString()}</p>
+                                    <p class="text-sm text-green-600">Available Balance: ₱${((investment.dividendEarned || 0) - (investment.dividendWithdrawn || 0)).toLocaleString()}</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xl font-bold text-green-600">₱${parseInt(investment.investmentAmount).toLocaleString()}</div>
+                                    <div class="text-sm text-gray-500">Capital Amount</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div class="flex gap-3">
+                    <button onclick="closeCapitalWithdrawalModal()" class="flex-1 bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600 transition-colors">Cancel</button>
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Scroll to top
+            setTimeout(() => {
+                container.scrollTop = 0;
+            }, 100);
+        }
+        
+        function selectUnitForWithdrawal(slotId, capitalAmount) {
+            const investment = investments[slotId];
+            if (!investment) {
+                alert('Investment unit not found!');
+                return;
+            }
+            
+            // Show confirmation
+            const confirmMessage = `⚠️ CONFIRM CAPITAL WITHDRAWAL ⚠️\n\n` +
+                `Unit: ${investment.slotNumber || generateSlotNumber(slotId)}\n` +
+                `Floor: ${investment.floorInfo}\n` +
+                `Capital Amount: ₱${capitalAmount.toLocaleString()}\n\n` +
+                `This will:\n` +
+                `• Stop dividend earnings for this unit\n` +
+                `• Remove this investment unit permanently\n` +
                 `• Cannot be reversed once approved\n\n` +
-                `Are you sure you want to proceed?`;
+                `Continue with withdrawal request?`;
             
             if (!confirm(confirmMessage)) {
                 return;
             }
             
-            document.getElementById('totalCapitalAmount').textContent = `₱${totalCapital.toLocaleString()}`;
-            
+            // Show withdrawal form for selected unit
+            showCapitalWithdrawalForm(slotId, capitalAmount);
+        }
+        
+        function showCapitalWithdrawalForm(slotId, capitalAmount) {
             const modal = document.getElementById('capitalWithdrawalModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            const container = modal.querySelector('.form-container');
             
-            // Scroll to top of form
+            // Calculate fees
+            const transferFee = 20;
+            const adminFeeRate = 0.01; // 1%
+            const adminFee = Math.round(capitalAmount * adminFeeRate);
+            const totalFees = transferFee + adminFee;
+            const netAmount = capitalAmount - totalFees;
+            
+            container.innerHTML = `
+                <h3 class="text-2xl font-bold mb-6 text-center">🏦 Capital Withdrawal Request</h3>
+                
+                <form id="capitalWithdrawalForm" class="space-y-4">
+                    <input type="hidden" id="selectedSlotId" value="${slotId}">
+                    <input type="hidden" id="selectedCapitalAmount" value="${capitalAmount}">
+                    
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <div class="text-center">
+                            <div class="text-lg font-bold text-blue-800 mb-2">Selected Investment Unit</div>
+                            <div class="text-2xl font-bold text-green-600">${investments[slotId].slotNumber || generateSlotNumber(slotId)}</div>
+                            <div class="text-sm text-blue-600">${investments[slotId].floorInfo}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                        <div class="text-yellow-800 font-bold mb-3">💰 Withdrawal Breakdown</div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span>Capital Amount:</span>
+                                <span class="font-semibold">₱${capitalAmount.toLocaleString()}</span>
+                            </div>
+                            <div class="flex justify-between text-red-600">
+                                <span>Transfer Fee:</span>
+                                <span>-₱${transferFee.toLocaleString()}</span>
+                            </div>
+                            <div class="flex justify-between text-red-600">
+                                <span>Admin Fee (1%):</span>
+                                <span>-₱${adminFee.toLocaleString()}</span>
+                            </div>
+                            <hr class="border-yellow-300">
+                            <div class="flex justify-between font-bold text-lg">
+                                <span>Net Amount:</span>
+                                <span class="text-green-600">₱${netAmount.toLocaleString()}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Withdrawal Method *</label>
+                        <select id="capitalWithdrawMethod" name="capitalWithdrawMethod" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-red-500">
+                            <option value="">Select withdrawal method</option>
+                            <option value="GCash">GCash</option>
+                            <option value="Palawan Pay">Palawan Pay</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="PayPal">PayPal</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Account Details *</label>
+                        <textarea id="capitalWithdrawAccount" name="capitalWithdrawAccount" required 
+                                  placeholder="Enter account number, name, etc." 
+                                  class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-red-500 h-20"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Reason for Withdrawal</label>
+                        <textarea id="capitalWithdrawReason" name="capitalWithdrawReason" 
+                                  placeholder="Optional: Explain why you're withdrawing your capital" 
+                                  class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-red-500 h-20"></textarea>
+                    </div>
+                    
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div class="text-yellow-800 font-semibold mb-2">⏰ Processing Time</div>
+                        <p class="text-yellow-700 text-sm">Capital withdrawals are processed within 5-7 business days after approval by admin.</p>
+                    </div>
+                    
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" onclick="closeCapitalWithdrawalModal()" class="flex-1 bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600 transition-colors">Cancel</button>
+                        <button type="submit" class="flex-1 bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition-colors">Submit Request</button>
+                    </div>
+                </form>
+            `;
+            
+            // Scroll to top
             setTimeout(() => {
-                const formContainer = modal.querySelector('.form-container');
-                if (formContainer) {
-                    formContainer.scrollTop = 0;
-                }
+                container.scrollTop = 0;
             }, 100);
         }
         
@@ -4408,25 +4785,119 @@
             const [email, affiliate] = affiliateEntry;
             const availableBalance = (affiliate.totalCommissions || 0) - (affiliate.totalWithdrawals || 0);
             
-            if (availableBalance < 100) {
-                alert(`Insufficient commission balance for withdrawal.\n\nAvailable: ₱${availableBalance.toLocaleString()}\nMinimum: ₱100\n\nPlease wait for more commission earnings.`);
+            if (availableBalance < 120) { // Minimum 100 + 20 transfer fee
+                alert(`Insufficient commission balance for withdrawal.\n\nAvailable: ₱${availableBalance.toLocaleString()}\nMinimum: ₱120 (₱100 + ₱20 transfer fee)\n\nPlease wait for more commission earnings.`);
                 return;
             }
             
-            document.getElementById('availableCommissionBalance').textContent = `₱${availableBalance.toLocaleString()}`;
-            document.getElementById('affiliateWithdrawAmount').max = availableBalance;
-            
+            // Show withdrawal form with fees
+            showAffiliateWithdrawalForm(availableBalance);
+        }
+        
+        function showAffiliateWithdrawalForm(availableBalance) {
             const modal = document.getElementById('affiliateWithdrawalRequestModal');
+            const container = modal.querySelector('.form-container');
+            
+            container.innerHTML = `
+                <h3 class="text-2xl font-bold mb-6 text-center">💸 Request Commission Withdrawal</h3>
+                
+                <form id="affiliateWithdrawalRequestForm" class="space-y-4">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <div class="text-center">
+                            <div class="text-lg font-bold text-blue-800 mb-2">Available Commission</div>
+                            <div class="text-3xl font-bold text-green-600" id="availableCommissionBalance">₱${availableBalance.toLocaleString()}</div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Withdrawal Amount *</label>
+                        <input type="number" id="affiliateWithdrawAmount" name="affiliateWithdrawAmount" required min="100" step="100" 
+                               max="${availableBalance - 20}" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500" 
+                               placeholder="Enter amount to withdraw" onchange="calculateAffiliateWithdrawalFees()">
+                        <div class="text-xs text-gray-500 mt-1">Minimum withdrawal: ₱100 (plus ₱20 transfer fee)</div>
+                    </div>
+                    
+                    <div id="affiliateWithdrawalBreakdown" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 hidden">
+                        <div class="text-yellow-800 font-bold mb-3">💰 Withdrawal Breakdown</div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span>Withdrawal Amount:</span>
+                                <span class="font-semibold" id="affiliateGrossAmount">₱0</span>
+                            </div>
+                            <div class="flex justify-between text-red-600">
+                                <span>Transfer Fee:</span>
+                                <span id="affiliateTransferFee">-₱20</span>
+                            </div>
+                            <div class="flex justify-between text-red-600">
+                                <span>Admin Fee (1%):</span>
+                                <span id="affiliateAdminFee">-₱0</span>
+                            </div>
+                            <hr class="border-yellow-300">
+                            <div class="flex justify-between font-bold text-lg">
+                                <span>Net Amount:</span>
+                                <span class="text-green-600" id="affiliateNetAmount">₱0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Withdrawal Method *</label>
+                        <select id="affiliateWithdrawMethodReq" name="affiliateWithdrawMethodReq" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500">
+                            <option value="">Select withdrawal method</option>
+                            <option value="GCash">GCash</option>
+                            <option value="Palawan Pay">Palawan Pay</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="PayPal">PayPal</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Account Details *</label>
+                        <textarea id="affiliateWithdrawAccountReq" name="affiliateWithdrawAccountReq" required 
+                                  placeholder="Enter account number, name, etc." 
+                                  class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 h-20"></textarea>
+                    </div>
+                    
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div class="text-yellow-800 font-semibold mb-2">⏰ Processing Time</div>
+                        <p class="text-yellow-700 text-sm">Commission withdrawals are credited within 1-3 business days after approval by admin.</p>
+                    </div>
+                    
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" onclick="closeAffiliateWithdrawalRequestModal()" class="flex-1 bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600 transition-colors">Cancel</button>
+                        <button type="submit" class="flex-1 bg-orange-600 text-white py-3 rounded-lg hover:bg-orange-700 transition-colors">Submit Request</button>
+                    </div>
+                </form>
+            `;
+            
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             
             // Scroll to top of form
             setTimeout(() => {
-                const formContainer = modal.querySelector('.form-container');
-                if (formContainer) {
-                    formContainer.scrollTop = 0;
-                }
+                container.scrollTop = 0;
             }, 100);
+        }
+        
+        function calculateAffiliateWithdrawalFees() {
+            const amount = parseFloat(document.getElementById('affiliateWithdrawAmount').value) || 0;
+            
+            if (amount > 0) {
+                const transferFee = 20;
+                const adminFeeRate = 0.01; // 1%
+                const adminFee = Math.round(amount * adminFeeRate);
+                const totalFees = transferFee + adminFee;
+                const netAmount = amount - totalFees;
+                
+                document.getElementById('affiliateGrossAmount').textContent = `₱${amount.toLocaleString()}`;
+                document.getElementById('affiliateTransferFee').textContent = `-₱${transferFee.toLocaleString()}`;
+                document.getElementById('affiliateAdminFee').textContent = `-₱${adminFee.toLocaleString()}`;
+                document.getElementById('affiliateNetAmount').textContent = `₱${netAmount.toLocaleString()}`;
+                
+                document.getElementById('affiliateWithdrawalBreakdown').classList.remove('hidden');
+            } else {
+                document.getElementById('affiliateWithdrawalBreakdown').classList.add('hidden');
+            }
         }
         
         function closeAffiliateWithdrawalRequestModal() {
@@ -4709,6 +5180,219 @@
             loadAdminWithdrawals();
             
             alert(`❌ Affiliate withdrawal request declined!\n\nRequest ID: ${requestId}\nAffiliate: ${request.affiliateName}\nReason: ${adminNotes}`);
+        }
+
+        // ===== FINANCIAL STATEMENT FUNCTIONS =====
+        function loadFinancialStatement() {
+            const container = document.getElementById('adminFinancialContent');
+            
+            // Calculate financial data
+            const financialData = calculateFinancialData();
+            
+            container.innerHTML = `
+                <div class="mb-6">
+                    <h4 class="text-2xl font-bold mb-6 text-center">📊 Financial Statement</h4>
+                    
+                    <!-- Summary Cards -->
+                    <div class="grid md:grid-cols-4 gap-4 mb-8">
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-green-800">₱${financialData.totalInvestmentsReceived.toLocaleString()}</div>
+                            <div class="text-sm text-green-600">Total Investments Received</div>
+                        </div>
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-blue-800">₱${financialData.totalDividendsPaid.toLocaleString()}</div>
+                            <div class="text-sm text-blue-600">Total Dividends Paid</div>
+                        </div>
+                        <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-orange-800">₱${financialData.totalCommissionsPaid.toLocaleString()}</div>
+                            <div class="text-sm text-orange-600">Total Commissions Paid</div>
+                        </div>
+                        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-purple-800">₱${financialData.totalFeesCollected.toLocaleString()}</div>
+                            <div class="text-sm text-purple-600">Total Fees Collected</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Fee Breakdown -->
+                    <div class="grid md:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                            <h5 class="text-lg font-bold text-yellow-800 mb-4">💰 Fee Breakdown</h5>
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-yellow-700">Transfer Fees:</span>
+                                    <span class="font-semibold text-yellow-800">₱${financialData.totalTransferFees.toLocaleString()}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-yellow-700">Admin Fees (1%):</span>
+                                    <span class="font-semibold text-yellow-800">₱${financialData.totalAdminFees.toLocaleString()}</span>
+                                </div>
+                                <hr class="border-yellow-300">
+                                <div class="flex justify-between font-bold text-lg">
+                                    <span class="text-yellow-800">Total Fees:</span>
+                                    <span class="text-yellow-800">₱${financialData.totalFeesCollected.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-6">
+                            <h5 class="text-lg font-bold text-indigo-800 mb-4">📈 Net Position</h5>
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-indigo-700">Total Income:</span>
+                                    <span class="font-semibold text-green-600">₱${(financialData.totalInvestmentsReceived + financialData.totalFeesCollected).toLocaleString()}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-indigo-700">Total Expenses:</span>
+                                    <span class="font-semibold text-red-600">₱${(financialData.totalDividendsPaid + financialData.totalCommissionsPaid).toLocaleString()}</span>
+                                </div>
+                                <hr class="border-indigo-300">
+                                <div class="flex justify-between font-bold text-lg">
+                                    <span class="text-indigo-800">Net Position:</span>
+                                    <span class="${financialData.netPosition >= 0 ? 'text-green-600' : 'text-red-600'}">₱${financialData.netPosition.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Transactions -->
+                    <div class="bg-white border rounded-lg p-6">
+                        <h5 class="text-lg font-bold mb-4">📋 Recent Financial Transactions</h5>
+                        <div class="space-y-3 max-h-96 overflow-y-auto">
+                            ${financialData.recentTransactions.map(tx => `
+                                <div class="flex justify-between items-center p-3 ${
+                                    tx.type === 'investment' ? 'bg-green-50 border-l-4 border-green-400' :
+                                    tx.type === 'dividend' ? 'bg-blue-50 border-l-4 border-blue-400' :
+                                    tx.type === 'commission' ? 'bg-orange-50 border-l-4 border-orange-400' :
+                                    'bg-purple-50 border-l-4 border-purple-400'
+                                } rounded">
+                                    <div class="flex-1">
+                                        <div class="font-semibold ${
+                                            tx.type === 'investment' ? 'text-green-800' :
+                                            tx.type === 'dividend' ? 'text-blue-800' :
+                                            tx.type === 'commission' ? 'text-orange-800' :
+                                            'text-purple-800'
+                                        }">
+                                            ${tx.type === 'investment' ? '💰 Investment Received' :
+                                              tx.type === 'dividend' ? '📊 Dividend Paid' :
+                                              tx.type === 'commission' ? '🤝 Commission Paid' :
+                                              '💸 Fee Collected'}
+                                        </div>
+                                        <div class="text-sm text-gray-600">${tx.description}</div>
+                                        <div class="text-xs text-gray-400">${new Date(tx.date).toLocaleDateString()}</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="font-bold ${tx.amount > 0 ? 'text-green-600' : 'text-red-600'}">
+                                            ${tx.amount > 0 ? '+' : ''}₱${Math.abs(tx.amount).toLocaleString()}
+                                        </div>
+                                        ${tx.fees ? `<div class="text-xs text-purple-600">Fees: ₱${tx.fees.toLocaleString()}</div>` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function calculateFinancialData() {
+            let totalInvestmentsReceived = 0;
+            let totalDividendsPaid = 0;
+            let totalCommissionsPaid = 0;
+            let totalTransferFees = 0;
+            let totalAdminFees = 0;
+            const recentTransactions = [];
+            
+            // Calculate from investments
+            Object.values(investments).forEach(investment => {
+                if (investment.status === 'approved') {
+                    const amount = parseInt(investment.investmentAmount);
+                    totalInvestmentsReceived += amount;
+                    
+                    recentTransactions.push({
+                        type: 'investment',
+                        amount: amount,
+                        date: investment.timestamp,
+                        description: `Investment from ${investment.fullName} - ${investment.slotNumber || 'N/A'}`
+                    });
+                    
+                    // Add dividend payments
+                    if (investment.dividendTransactions) {
+                        investment.dividendTransactions.forEach(tx => {
+                            totalDividendsPaid += tx.amount;
+                            recentTransactions.push({
+                                type: 'dividend',
+                                amount: -tx.amount,
+                                date: tx.date,
+                                description: `Dividend to ${investment.fullName} - ${investment.slotNumber || 'N/A'}`
+                            });
+                        });
+                    }
+                }
+            });
+            
+            // Calculate from affiliates
+            Object.values(affiliates).forEach(affiliate => {
+                if (affiliate.commissionTransactions) {
+                    affiliate.commissionTransactions.forEach(tx => {
+                        totalCommissionsPaid += tx.amount;
+                        recentTransactions.push({
+                            type: 'commission',
+                            amount: -tx.amount,
+                            date: tx.date,
+                            description: `Commission to ${affiliate.name}`
+                        });
+                    });
+                }
+            });
+            
+            // Calculate from withdrawal requests (fees)
+            Object.values(withdrawalRequests).forEach(request => {
+                if (request.status === 'approved' && request.transferFee && request.adminFee) {
+                    totalTransferFees += request.transferFee;
+                    totalAdminFees += request.adminFee;
+                    
+                    recentTransactions.push({
+                        type: 'fee',
+                        amount: request.transferFee + request.adminFee,
+                        fees: request.transferFee + request.adminFee,
+                        date: request.processedDate || request.timestamp,
+                        description: `Withdrawal fees - ${request.type} withdrawal`
+                    });
+                }
+            });
+            
+            // Calculate from affiliate withdrawal requests (fees)
+            Object.values(affiliateWithdrawalRequests).forEach(request => {
+                if (request.status === 'approved' && request.transferFee && request.adminFee) {
+                    totalTransferFees += request.transferFee;
+                    totalAdminFees += request.adminFee;
+                    
+                    recentTransactions.push({
+                        type: 'fee',
+                        amount: request.transferFee + request.adminFee,
+                        fees: request.transferFee + request.adminFee,
+                        date: request.processedDate || request.timestamp,
+                        description: `Commission withdrawal fees - ${request.affiliateName}`
+                    });
+                }
+            });
+            
+            const totalFeesCollected = totalTransferFees + totalAdminFees;
+            const netPosition = (totalInvestmentsReceived + totalFeesCollected) - (totalDividendsPaid + totalCommissionsPaid);
+            
+            // Sort transactions by date (newest first)
+            recentTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            return {
+                totalInvestmentsReceived,
+                totalDividendsPaid,
+                totalCommissionsPaid,
+                totalTransferFees,
+                totalAdminFees,
+                totalFeesCollected,
+                netPosition,
+                recentTransactions: recentTransactions.slice(0, 50) // Show last 50 transactions
+            };
         }
 
         // ===== ADMIN SETTINGS FUNCTIONS =====
@@ -5042,5 +5726,5 @@
 
 
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98625864b36da9a6',t:'MTc1OTA1MzExOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98628ec2c0ae9894',t:'MTc1OTA1NTM0NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
