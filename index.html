@@ -608,13 +608,16 @@
                     </div>
                 </div>
                 
-                <!-- Withdrawal Request Buttons -->
-                <div class="grid md:grid-cols-2 gap-4 mb-6">
+                <!-- Action Buttons -->
+                <div class="grid md:grid-cols-3 gap-4 mb-6">
                     <button onclick="showDividendWithdrawalRequest()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                         💰 Request Dividend Withdrawal
                     </button>
                     <button onclick="showCapitalWithdrawalRequest()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                         🏦 Request Capital Withdrawal
+                    </button>
+                    <button onclick="refreshPortfolioData()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                        🔄 Refresh Data
                     </button>
                 </div>
                 
@@ -703,6 +706,12 @@
                     <div>
                         <label class="block text-sm font-medium mb-2">Payment Account Details *</label>
                         <textarea id="affiliateAccountDetails" name="affiliateAccountDetails" required placeholder="Enter account number, name, etc." class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 h-20"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Create Affiliate Password *</label>
+                        <input type="password" id="affiliatePassword" name="affiliatePassword" required minlength="6" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500">
+                        <div class="text-xs text-gray-500 mt-1">This password will be used to access your affiliate dashboard later</div>
                     </div>
                     
                     <div class="flex gap-3 pt-4">
@@ -1007,9 +1016,10 @@
             <h3 class="text-3xl font-bold mb-6 text-center">📊 Affiliate Dashboard</h3>
             
             <div id="affiliateDashboardLogin" class="text-center">
-                <p class="mb-4 text-gray-600">Enter your affiliate number to view your dashboard</p>
+                <p class="mb-4 text-gray-600">Enter your affiliate number and password to view your dashboard</p>
                 <div class="space-y-4 max-w-sm mx-auto">
                     <input type="text" id="affiliateDashboardNumber" placeholder="Enter your affiliate number" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500">
+                    <input type="password" id="affiliateDashboardPassword" placeholder="Enter your affiliate password" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500">
                     <button onclick="loadAffiliateDashboard()" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700">View Dashboard</button>
                     <button onclick="closeAffiliateDashboardModal()" class="w-full bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600">Cancel</button>
                 </div>
@@ -1063,10 +1073,13 @@
                     <!-- Referrals will be loaded here -->
                 </div>
                 
-                <!-- Affiliate Withdrawal Request Button -->
-                <div class="mb-6">
-                    <button onclick="showAffiliateWithdrawalRequest()" class="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors w-full">
+                <!-- Action Buttons -->
+                <div class="grid md:grid-cols-2 gap-4 mb-6">
+                    <button onclick="showAffiliateWithdrawalRequest()" class="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                         💸 Request Commission Withdrawal
+                    </button>
+                    <button onclick="refreshAffiliateDashboardData()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                        🔄 Refresh Data
                     </button>
                 </div>
                 
@@ -4210,6 +4223,7 @@
                 paymentMethod: formData.get('affiliatePayment'),
                 accountDetails: formData.get('affiliateAccountDetails'),
                 affiliateNumber: document.getElementById('generatedAffiliateNumber').value,
+                affiliatePassword: formData.get('affiliatePassword'),
                 registrationDate: new Date().toISOString(),
                 totalCommissions: 0,
                 pendingCommissions: 0,
@@ -4270,8 +4284,10 @@
 
         function loadAffiliateDashboard() {
             const affiliateNumber = document.getElementById('affiliateDashboardNumber').value.trim();
-            if (!affiliateNumber) {
-                alert('Please enter your affiliate number');
+            const affiliatePassword = document.getElementById('affiliateDashboardPassword').value.trim();
+            
+            if (!affiliateNumber || !affiliatePassword) {
+                alert('Please enter both your affiliate number and password');
                 return;
             }
             
@@ -4284,6 +4300,12 @@
             }
             
             const [email, affiliate] = affiliateEntry;
+            
+            // Verify password
+            if (affiliate.affiliatePassword !== affiliatePassword) {
+                alert('Incorrect affiliate password. Please check your password and try again.');
+                return;
+            }
             
             // Store current affiliate number for withdrawal requests
             currentAffiliateNumber = affiliateNumber;
@@ -4494,7 +4516,7 @@
                     <div>
                         <label class="block text-sm font-medium mb-2">Withdrawal Amount *</label>
                         <input type="number" id="dividendWithdrawAmount" name="dividendWithdrawAmount" required min="100" step="100" 
-                               max="${availableBalance - 20}" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500" 
+                               max="${availableBalance - 50}" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500" 
                                placeholder="Enter amount to withdraw" onchange="calculateDividendWithdrawalFees()">
                         <div class="text-xs text-gray-500 mt-1">Minimum withdrawal: ₱100 (plus ₱20 transfer fee + ₱30 admin fee)</div>
                     </div>
@@ -4825,7 +4847,7 @@
                     <div>
                         <label class="block text-sm font-medium mb-2">Withdrawal Amount *</label>
                         <input type="number" id="affiliateWithdrawAmount" name="affiliateWithdrawAmount" required min="100" step="100" 
-                               max="${availableBalance - 20}" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500" 
+                               max="${availableBalance - 50}" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500" 
                                placeholder="Enter amount to withdraw" onchange="calculateAffiliateWithdrawalFees()">
                         <div class="text-xs text-gray-500 mt-1">Minimum withdrawal: ₱100 (plus ₱20 transfer fee + ₱30 admin fee)</div>
                     </div>
@@ -5204,7 +5226,7 @@
                     <h4 class="text-2xl font-bold mb-6 text-center">📊 Financial Statement</h4>
                     
                     <!-- Summary Cards -->
-                    <div class="grid md:grid-cols-4 gap-4 mb-8">
+                    <div class="grid md:grid-cols-5 gap-4 mb-8">
                         <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
                             <div class="text-2xl font-bold text-green-800">₱${financialData.totalInvestmentsReceived.toLocaleString()}</div>
                             <div class="text-sm text-green-600">Total Investments Received</div>
@@ -5216,6 +5238,10 @@
                         <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
                             <div class="text-2xl font-bold text-orange-800">₱${financialData.totalCommissionsPaid.toLocaleString()}</div>
                             <div class="text-sm text-orange-600">Total Commissions Paid</div>
+                        </div>
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-red-800">₱${financialData.totalCapitalWithdrawals.toLocaleString()}</div>
+                            <div class="text-sm text-red-600">Capital Withdrawals</div>
                         </div>
                         <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
                             <div class="text-2xl font-bold text-purple-800">₱${financialData.totalFeesCollected.toLocaleString()}</div>
@@ -5253,7 +5279,7 @@
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-indigo-700">Total Expenses:</span>
-                                    <span class="font-semibold text-red-600">₱${(financialData.totalDividendsPaid + financialData.totalCommissionsPaid).toLocaleString()}</span>
+                                    <span class="font-semibold text-red-600">₱${(financialData.totalDividendsPaid + financialData.totalCommissionsPaid + financialData.totalCapitalWithdrawals).toLocaleString()}</span>
                                 </div>
                                 <hr class="border-indigo-300">
                                 <div class="flex justify-between font-bold text-lg">
@@ -5273,6 +5299,7 @@
                                     tx.type === 'investment' ? 'bg-green-50 border-l-4 border-green-400' :
                                     tx.type === 'dividend' ? 'bg-blue-50 border-l-4 border-blue-400' :
                                     tx.type === 'commission' ? 'bg-orange-50 border-l-4 border-orange-400' :
+                                    tx.type === 'capital' ? 'bg-red-50 border-l-4 border-red-400' :
                                     'bg-purple-50 border-l-4 border-purple-400'
                                 } rounded">
                                     <div class="flex-1">
@@ -5280,11 +5307,13 @@
                                             tx.type === 'investment' ? 'text-green-800' :
                                             tx.type === 'dividend' ? 'text-blue-800' :
                                             tx.type === 'commission' ? 'text-orange-800' :
+                                            tx.type === 'capital' ? 'text-red-800' :
                                             'text-purple-800'
                                         }">
                                             ${tx.type === 'investment' ? '💰 Investment Received' :
                                               tx.type === 'dividend' ? '📊 Dividend Paid' :
                                               tx.type === 'commission' ? '🤝 Commission Paid' :
+                                              tx.type === 'capital' ? '🏦 Capital Withdrawal' :
                                               '💸 Fee Collected'}
                                         </div>
                                         <div class="text-sm text-gray-600">${tx.description}</div>
@@ -5346,6 +5375,7 @@
             let totalInvestmentsReceived = 0;
             let totalDividendsPaid = 0;
             let totalCommissionsPaid = 0;
+            let totalCapitalWithdrawals = 0;
             let totalTransferFees = 0;
             let totalAdminFees = 0;
             const recentTransactions = [];
@@ -5394,9 +5424,20 @@
                 }
             });
             
-            // Calculate from withdrawal requests (fees)
+            // Calculate from withdrawal requests (fees and capital withdrawals)
             Object.entries(withdrawalRequests).forEach(([requestId, request]) => {
                 if (request.status === 'approved') {
+                    // Track capital withdrawals as expenses
+                    if (request.type === 'capital') {
+                        totalCapitalWithdrawals += request.amount;
+                        recentTransactions.push({
+                            type: 'capital',
+                            amount: -request.amount,
+                            date: request.processedDate || request.timestamp,
+                            description: `Capital withdrawal - ${request.email}`
+                        });
+                    }
+                    
                     const transferFee = request.transferFee || 20;
                     const adminFee = request.adminFee || 30;
                     totalTransferFees += transferFee;
@@ -5445,7 +5486,7 @@
             });
             
             const totalFeesCollected = totalTransferFees + totalAdminFees;
-            const netPosition = (totalInvestmentsReceived + totalFeesCollected) - (totalDividendsPaid + totalCommissionsPaid);
+            const netPosition = (totalInvestmentsReceived + totalFeesCollected) - (totalDividendsPaid + totalCommissionsPaid + totalCapitalWithdrawals);
             
             // Sort transactions by date (newest first)
             recentTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -5454,6 +5495,7 @@
                 totalInvestmentsReceived,
                 totalDividendsPaid,
                 totalCommissionsPaid,
+                totalCapitalWithdrawals,
                 totalTransferFees,
                 totalAdminFees,
                 totalFeesCollected,
@@ -6045,5 +6087,5 @@
 
 
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98642f9e4474586b',t:'MTc1OTA3MjQxOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9864570c32879e12',t:'MTc1OTA3NDAzNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
