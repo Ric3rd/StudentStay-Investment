@@ -27,6 +27,62 @@
             transform: scale(1.05);
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
+
+        /* Mobile-friendly slot sizing */
+        @media (max-width: 768px) {
+            .investment-slot {
+                width: 3.5rem !important;
+                height: 3.5rem !important;
+                font-size: 0.75rem;
+            }
+            
+            .floor-container {
+                gap: 0.5rem;
+            }
+            
+            .floor-row {
+                gap: 0.25rem;
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .investment-slot {
+                width: 3rem !important;
+                height: 3rem !important;
+                font-size: 0.625rem;
+            }
+            
+            .building-container {
+                padding: 20px 15px;
+                min-height: auto;
+            }
+            
+            .form-container {
+                margin: 10px;
+                max-width: calc(100vw - 20px);
+            }
+            
+            .modal {
+                padding: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .investment-slot {
+                width: 2.5rem !important;
+                height: 2.5rem !important;
+                font-size: 0.5rem;
+            }
+            
+            .floor-row {
+                gap: 0.125rem;
+            }
+            
+            .building-container {
+                padding: 15px 10px;
+            }
+        }
         
         .available { background: linear-gradient(135deg, #10b981, #059669); }
         .pending { background: linear-gradient(135deg, #f59e0b, #d97706); }
@@ -268,6 +324,23 @@
                 </div>
                 <div class="text-center text-white mt-2">
                     <span id="progressText">₱- / ₱3,000,000</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="max-w-6xl mx-auto mt-8 bg-white/10 backdrop-blur-sm rounded-xl p-6">
+            <h3 class="text-white text-2xl font-bold text-center mb-6">📞 Contact Us</h3>
+            <div class="grid md:grid-cols-2 gap-6 text-center">
+                <div class="bg-blue-500/20 rounded-lg p-4">
+                    <div class="text-2xl mb-2">📧</div>
+                    <div class="text-lg font-bold text-blue-300">Email</div>
+                    <div class="text-white">phantomsalonga@gmail.com</div>
+                </div>
+                <div class="bg-green-500/20 rounded-lg p-4">
+                    <div class="text-2xl mb-2">📱</div>
+                    <div class="text-lg font-bold text-green-300">Mobile</div>
+                    <div class="text-white">09606555951</div>
                 </div>
             </div>
         </div>
@@ -1256,7 +1329,7 @@
                         // Create new row if needed
                         if (slotsInCurrentRow === 0) {
                             currentRow = document.createElement('div');
-                            currentRow.className = 'flex gap-2 justify-center';
+                            currentRow.className = 'floor-row flex gap-2 justify-center';
                             floor.appendChild(currentRow);
                         }
                         
@@ -1341,6 +1414,14 @@
             const modal = document.getElementById('investmentModal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+            
+            // Scroll to top of form
+            setTimeout(() => {
+                const formContainer = modal.querySelector('.form-container');
+                if (formContainer) {
+                    formContainer.scrollTop = 0;
+                }
+            }, 100);
         }
 
         function generateSlotNumber(slotKey) {
@@ -3004,6 +3085,18 @@
             // Update total withdrawals
             affiliate.totalWithdrawals = (affiliate.totalWithdrawals || 0) + amount;
             
+            // Update withdrawal history for counting
+            if (!affiliate.withdrawalHistory) {
+                affiliate.withdrawalHistory = [];
+            }
+            affiliate.withdrawalHistory.push({
+                amount: amount,
+                date: date,
+                method: method,
+                reference: reference,
+                timestamp: new Date().toISOString()
+            });
+            
             // Save to Firebase
             try {
                 await saveToFirebase('affiliates', email, affiliate);
@@ -3455,6 +3548,14 @@
             
             // Generate a new affiliate number
             generateNewAffiliateNumber();
+            
+            // Scroll to top of form
+            setTimeout(() => {
+                const formContainer = modal.querySelector('.form-container');
+                if (formContainer) {
+                    formContainer.scrollTop = 0;
+                }
+            }, 100);
         }
 
         function closeAffiliateModal() {
@@ -4019,5 +4120,5 @@
 
 
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9861bb0d311d9894',t:'MTc1OTA0NjY3My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9861e8a5b3a69896',t:'MTc1OTA0ODU0MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
