@@ -825,10 +825,13 @@
                 db = firebase.firestore();
                 
                 // Configure Firestore settings for better reliability
-                db.settings({
+                const settings = {
                     cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED,
-                    ignoreUndefinedProperties: true
-                });
+                    ignoreUndefinedProperties: true,
+                    merge: true
+                };
+                
+                db.settings(settings);
                 
                 // Enable offline persistence
                 db.enablePersistence({ synchronizeTabs: true })
@@ -937,27 +940,49 @@
 
             try {
                 updateConnectionStatus('loading', `Saving data... (attempt ${retryCount + 1})`);
+                console.log(`🔄 Attempting to save ${collection}/${docId} to Firebase (attempt ${retryCount + 1})`);
+                console.log('Data to save:', JSON.stringify(data, null, 2));
+                
+                // Get document reference
+                const docRef = db.collection(collection).doc(docId);
                 
                 // Use a timeout to prevent hanging requests
-                const savePromise = db.collection(collection).doc(docId).set(data, { merge: true });
+                const savePromise = docRef.set(data, { merge: true });
                 const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Save timeout')), 10000)
+                    setTimeout(() => reject(new Error('Save timeout')), 15000)
                 );
                 
                 await Promise.race([savePromise, timeoutPromise]);
                 
-                updateConnectionStatus('online', 'Data saved successfully');
-                console.log(`✅ Successfully saved ${collection}/${docId} to Firebase`);
-                return true;
+                // Verify the save by reading it back
+                console.log(`🔍 Verifying save for ${collection}/${docId}...`);
+                const verifyDoc = await docRef.get();
+                
+                if (verifyDoc.exists) {
+                    const savedData = verifyDoc.data();
+                    console.log(`✅ Save verified! Document exists in Firebase:`, savedData);
+                    updateConnectionStatus('online', 'Data saved and verified');
+                    return true;
+                } else {
+                    throw new Error('Document was not created in Firebase');
+                }
+                
             } catch (error) {
                 console.error(`❌ Error saving ${collection}/${docId}:`, error);
+                console.error('Error details:', {
+                    code: error.code,
+                    message: error.message,
+                    name: error.name,
+                    stack: error.stack
+                });
                 
                 // Retry logic for network errors
                 if (retryCount < maxRetries && (
                     error.code === 'unavailable' || 
                     error.code === 'deadline-exceeded' ||
                     error.message === 'Save timeout' ||
-                    error.code === 'resource-exhausted'
+                    error.code === 'resource-exhausted' ||
+                    error.code === 'permission-denied'
                 )) {
                     console.log(`🔄 Retrying save in ${retryDelay}ms... (${retryCount + 1}/${maxRetries})`);
                     updateConnectionStatus('loading', `Retrying save... (${retryCount + 1}/${maxRetries})`);
@@ -999,6 +1024,30 @@
             }
         }
 
+        // Test Firebase connection
+        async function testFirebaseConnection() {
+            if (!isFirebaseConfigured || !db) {
+                return false;
+            }
+            
+            try {
+                console.log('🔍 Testing Firebase connection...');
+                
+                // Try to read from a collection
+                const testQuery = await db.collection('investments').limit(1).get();
+                console.log('✅ Firebase connection test successful');
+                return true;
+            } catch (error) {
+                console.error('❌ Firebase connection test failed:', error);
+                console.error('Connection test error details:', {
+                    code: error.code,
+                    message: error.message,
+                    name: error.name
+                });
+                return false;
+            }
+        }
+
         // Initialize data loading
         async function initializeData() {
             updateConnectionStatus('loading', 'Connecting to Firebase...');
@@ -1009,6 +1058,21 @@
             if (!firebaseInitialized) {
                 updateConnectionStatus('offline', 'Firebase connection failed');
                 console.error('❌ Firebase initialization failed');
+                
+                // Still initialize the building with empty data
+                investments = {};
+                affiliates = {};
+                initializeBuilding();
+                updateDashboard();
+                return;
+            }
+            
+            // Test Firebase connection
+            const connectionWorking = await testFirebaseConnection();
+            
+            if (!connectionWorking) {
+                updateConnectionStatus('offline', 'Firebase connection test failed');
+                console.error('❌ Firebase connection test failed');
                 
                 // Still initialize the building with empty data
                 investments = {};
@@ -3498,5 +3562,5 @@
             alert('✅ All affiliate data cleared successfully!');
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9861682930498cff',t:'MTc1OTA0MzI3OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98617bb7c7b19891',t:'MTc1OTA0NDA3OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
