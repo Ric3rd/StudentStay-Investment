@@ -1520,6 +1520,56 @@
             instructionsDiv.classList.remove('hidden');
         }
 
+        // ===== PHOTO COMPRESSION FUNCTIONS =====
+        function compressImage(file, maxWidth = 800, maxHeight = 600, quality = 0.8) {
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                
+                img.onload = function() {
+                    // Calculate new dimensions
+                    let { width, height } = img;
+                    
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height = (height * maxWidth) / width;
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width = (width * maxHeight) / height;
+                            height = maxHeight;
+                        }
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    // Draw and compress
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // Convert to base64 with compression
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                    resolve(compressedDataUrl);
+                };
+                
+                img.src = URL.createObjectURL(file);
+            });
+        }
+
+        function validateImageSize(dataUrl, maxSizeBytes = 900000) { // ~900KB limit for Firebase
+            // Calculate approximate size of base64 string
+            const base64Length = dataUrl.length - (dataUrl.indexOf(',') + 1);
+            const sizeInBytes = (base64Length * 3) / 4;
+            
+            return {
+                isValid: sizeInBytes <= maxSizeBytes,
+                actualSize: sizeInBytes,
+                maxSize: maxSizeBytes
+            };
+        }
+
         // ===== FORM SUBMISSION =====
         document.getElementById('investmentForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -1527,17 +1577,58 @@
             const formData = new FormData(this);
             const slotId = formData.get('slotId');
             
-            // Handle photo upload
+            // Handle photo upload with compression
             const photoFile = formData.get('photo');
-            let photoDataUrl = null;
             
             if (photoFile && photoFile.size > 0) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    photoDataUrl = e.target.result;
-                    saveInvestment(formData, slotId, photoDataUrl);
-                };
-                reader.readAsDataURL(photoFile);
+                // Show processing message
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = '📸 Processing photo...';
+                submitBtn.disabled = true;
+                
+                // Check file size first
+                if (photoFile.size > 10 * 1024 * 1024) { // 10MB limit
+                    alert('❌ Photo file is too large (max 10MB). Please choose a smaller image.');
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                    return;
+                }
+                
+                compressImage(photoFile)
+                    .then(compressedDataUrl => {
+                        // Validate compressed size
+                        const sizeCheck = validateImageSize(compressedDataUrl);
+                        
+                        if (!sizeCheck.isValid) {
+                            console.log(`Image too large after compression: ${Math.round(sizeCheck.actualSize / 1024)}KB`);
+                            // Try with higher compression
+                            return compressImage(photoFile, 600, 450, 0.6);
+                        }
+                        
+                        return compressedDataUrl;
+                    })
+                    .then(finalDataUrl => {
+                        const finalSizeCheck = validateImageSize(finalDataUrl);
+                        
+                        if (!finalSizeCheck.isValid) {
+                            alert(`❌ Photo is still too large after compression (${Math.round(finalSizeCheck.actualSize / 1024)}KB). Please choose a smaller image or crop it.`);
+                            submitBtn.textContent = originalText;
+                            submitBtn.disabled = false;
+                            return;
+                        }
+                        
+                        console.log(`✅ Photo compressed successfully: ${Math.round(finalSizeCheck.actualSize / 1024)}KB`);
+                        submitBtn.textContent = originalText;
+                        submitBtn.disabled = false;
+                        saveInvestment(formData, slotId, finalDataUrl);
+                    })
+                    .catch(error => {
+                        console.error('Photo compression failed:', error);
+                        alert('❌ Failed to process photo. Please try a different image.');
+                        submitBtn.textContent = originalText;
+                        submitBtn.disabled = false;
+                    });
             } else {
                 saveInvestment(formData, slotId, null);
             }
@@ -3562,5 +3653,5 @@
             alert('✅ All affiliate data cleared successfully!');
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98617bb7c7b19891',t:'MTc1OTA0NDA3OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98618450c56a9891',t:'MTc1OTA0NDQzMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
