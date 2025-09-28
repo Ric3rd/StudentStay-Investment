@@ -3626,35 +3626,46 @@
             
             console.log('Loading portfolio for email:', email);
             console.log('Available investments:', Object.keys(investments).length);
+            console.log('All investments:', investments);
             
-            // Find investments for this email
-            const userInvestments = Object.entries(investments).filter(([_, investment]) => {
+            // Find ALL investments for this email (approved and pending)
+            const allUserInvestments = Object.entries(investments).filter(([_, investment]) => {
                 const emailMatch = investment.email && investment.email.toLowerCase() === email.toLowerCase();
-                const statusMatch = investment.status === 'approved';
-                console.log(`Checking investment: ${investment.email} vs ${email}, status: ${investment.status}, match: ${emailMatch && statusMatch}`);
-                return emailMatch && statusMatch;
+                console.log(`Checking investment: ${investment.email} vs ${email}, status: ${investment.status}, emailMatch: ${emailMatch}`);
+                return emailMatch;
             });
             
-            console.log('Found user investments:', userInvestments.length);
+            console.log('Found all user investments:', allUserInvestments.length);
             
-            if (userInvestments.length === 0) {
-                alert('No approved investments found for this email address.\n\nPlease check:\n• Email address is correct\n• Your investments have been approved by admin\n• You have made at least one investment');
+            if (allUserInvestments.length === 0) {
+                alert('No investments found for this email address.\n\nPlease check:\n• Email address is correct (case sensitive)\n• You have submitted at least one investment\n\nIf you just invested, please wait for admin approval.');
                 return;
             }
             
-            // Verify password with any of the user's investments
-            const passwordMatch = userInvestments.some(([_, investment]) => {
+            // Verify password with any of the user's investments (approved or pending)
+            const passwordMatch = allUserInvestments.some(([_, investment]) => {
                 const match = investment.portfolioPassword === password;
-                console.log(`Password check: ${investment.portfolioPassword} vs ${password}, match: ${match}`);
+                console.log(`Password check: "${investment.portfolioPassword}" vs "${password}", match: ${match}`);
                 return match;
             });
             
             if (!passwordMatch) {
-                alert('Incorrect portfolio password. Please check your password and try again.\n\nNote: This is the password you created during investment registration, not your email password.');
+                // Show detailed password info for debugging
+                const passwordsFound = allUserInvestments.map(([_, inv]) => inv.portfolioPassword);
+                console.log('Passwords found in investments:', passwordsFound);
+                alert('Incorrect portfolio password. Please check your password and try again.\n\nNote: This is the password you created during investment registration, not your email password.\n\nIf you forgot your password, please contact admin.');
                 return;
             }
             
-            console.log('Password verified, loading portfolio...');
+            // Filter only approved investments for display
+            const userInvestments = allUserInvestments.filter(([_, investment]) => investment.status === 'approved');
+            
+            if (userInvestments.length === 0) {
+                alert('Your investments are still pending approval by admin.\n\nYou have ' + allUserInvestments.length + ' investment(s) submitted but not yet approved.\n\nPlease wait for admin approval or contact support.');
+                return;
+            }
+            
+            console.log('Password verified, loading portfolio with', userInvestments.length, 'approved investments...');
             
             // Store current user email for withdrawal requests
             currentUserEmail = email;
@@ -6155,5 +6166,5 @@
 
 
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98648c5316ec75d5',t:'MTc1OTA3NjIxNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9864c02063ff9894',t:'MTc1OTA3ODMzOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
