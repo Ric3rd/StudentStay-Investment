@@ -1060,14 +1060,11 @@
         function setupConnectionMonitoring() {
             if (!isFirebaseConfigured || !db) return;
             
-            // Monitor connection state
-            const connectedRef = db.collection('.info/connected');
-            
             // Set up periodic connection checks
             setInterval(async () => {
                 try {
                     // Simple test query to check connection
-                    await db.collection('test').limit(1).get();
+                    await db.collection('investments').limit(1).get();
                     if (!isOnline) {
                         updateConnectionStatus('online', 'Connection restored');
                     }
@@ -1515,14 +1512,26 @@
             updateSlotAppearance(slot, slotId);
             updateDashboard();
             
-            // Save to Firebase using the improved save function
+            // Save to Firebase with collection creation
             let firebaseSaveSuccess = false;
             
-            try {
-                firebaseSaveSuccess = await saveToFirebase('investments', slotId, investmentData);
-            } catch (error) {
-                console.error('❌ Firebase save error:', error);
-                firebaseSaveSuccess = false;
+            if (isFirebaseConfigured && db) {
+                updateConnectionStatus('loading', 'Saving investment to Firebase...');
+                
+                try {
+                    // Create the investments collection if it doesn't exist by adding the document
+                    await db.collection('investments').doc(slotId).set(investmentData);
+                    firebaseSaveSuccess = true;
+                    updateConnectionStatus('online', 'Investment saved to Firebase');
+                    console.log('✅ Investment saved to Firebase (collection created if needed):', slotId);
+                } catch (error) {
+                    console.error('❌ Firebase save error:', error);
+                    firebaseSaveSuccess = false;
+                    updateConnectionStatus('offline', 'Failed to save to Firebase');
+                }
+            } else {
+                console.log('⚠️ Firebase not configured');
+                updateConnectionStatus('offline', 'Firebase not available');
             }
             
             // Process affiliate commission if affiliate number provided
@@ -2277,34 +2286,21 @@
                 }
             }
             
-            // Save investment to Firebase with multiple methods
+            // Save investment to Firebase
             let firebaseSaveSuccess = false;
             
             if (isFirebaseConfigured && db) {
                 updateConnectionStatus('loading', 'Saving approved investment to Firebase...');
                 
-                // Method 1: Direct document save
                 try {
-                    await db.collection('investments').doc(slotId).set(investment, { merge: true });
+                    // Direct document save (this will create the collection if it doesn't exist)
+                    await db.collection('investments').doc(slotId).set(investment);
                     firebaseSaveSuccess = true;
                     updateConnectionStatus('online', 'Investment approved and saved to Firebase');
                     console.log('✅ Approved investment saved to Firebase:', slotId);
                 } catch (error) {
-                    console.error('❌ Direct Firebase save failed for approval:', error);
-                    
-                    // Method 2: Batch write
-                    try {
-                        const batch = db.batch();
-                        const docRef = db.collection('investments').doc(slotId);
-                        batch.set(docRef, investment, { merge: true });
-                        await batch.commit();
-                        firebaseSaveSuccess = true;
-                        updateConnectionStatus('online', 'Investment approved via batch save');
-                        console.log('✅ Approved investment saved via batch:', slotId);
-                    } catch (batchError) {
-                        console.error('❌ Batch save failed for approval:', batchError);
-                        updateConnectionStatus('offline', 'Approval saved locally only');
-                    }
+                    console.error('❌ Firebase save failed for approval:', error);
+                    updateConnectionStatus('offline', 'Approval saved locally only');
                 }
             } else {
                 console.log('⚠️ Firebase not configured, approval saved locally only');
@@ -2367,10 +2363,21 @@
                 updateConnectionStatus('loading', 'Removing investment from Firebase...');
                 
                 try {
-                    await db.collection('investments').doc(slotId).delete();
-                    firebaseDeleteSuccess = true;
-                    updateConnectionStatus('online', 'Investment removed from Firebase');
-                    console.log('✅ Investment removed from Firebase:', slotId);
+                    // Check if document exists before trying to delete
+                    const docRef = db.collection('investments').doc(slotId);
+                    const doc = await docRef.get();
+                    
+                    if (doc.exists) {
+                        await docRef.delete();
+                        firebaseDeleteSuccess = true;
+                        updateConnectionStatus('online', 'Investment removed from Firebase');
+                        console.log('✅ Investment removed from Firebase:', slotId);
+                    } else {
+                        // Document doesn't exist in Firebase, but that's okay
+                        firebaseDeleteSuccess = true;
+                        updateConnectionStatus('online', 'Investment not found in Firebase (already removed)');
+                        console.log('ℹ️ Investment not found in Firebase:', slotId);
+                    }
                 } catch (error) {
                     console.error('❌ Failed to remove investment from Firebase:', error);
                     updateConnectionStatus('offline', 'Removal saved locally only');
@@ -3463,5 +3470,5 @@
             alert('✅ All affiliate data cleared successfully!');
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9860fd8072519d1f',t:'MTc1OTAzODkwOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98611df6250e2416',t:'MTc1OTA0MDIzOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
