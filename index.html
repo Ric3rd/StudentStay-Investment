@@ -2662,17 +2662,50 @@
                         }
                     }
                     
-                    // Update affiliate data in storage
+                    // Update affiliate data in Firebase
                     affiliates[affiliateEmail] = affiliate;
-                    await saveData('affiliates', affiliates);
-                    console.log('Affiliate data updated in storage');
+                    if (isFirebaseConfigured && db) {
+                        try {
+                            await db.collection('affiliates').doc(affiliateEmail).set(affiliate, { merge: true });
+                            console.log('✅ Affiliate data updated in Firebase after revoke');
+                        } catch (error) {
+                            console.error('❌ Failed to update affiliate in Firebase:', error);
+                        }
+                    }
                 }
             }
             
-            // Remove the investment completely from storage
+            // Remove the investment from local storage
             delete investments[slotId];
-            await saveData('investments', investments);
-            console.log('Investment removed from storage');
+            
+            // Remove from Firebase
+            let firebaseDeleteSuccess = false;
+            
+            if (isFirebaseConfigured && db) {
+                updateConnectionStatus('loading', 'Removing investment from Firebase...');
+                
+                try {
+                    const docRef = db.collection('investments').doc(slotId);
+                    const doc = await docRef.get();
+                    
+                    if (doc.exists) {
+                        await docRef.delete();
+                        firebaseDeleteSuccess = true;
+                        updateConnectionStatus('online', 'Investment revoked and removed from Firebase');
+                        console.log('✅ Investment removed from Firebase:', slotId);
+                    } else {
+                        firebaseDeleteSuccess = true;
+                        updateConnectionStatus('online', 'Investment not found in Firebase (already removed)');
+                        console.log('ℹ️ Investment not found in Firebase:', slotId);
+                    }
+                } catch (error) {
+                    console.error('❌ Failed to remove investment from Firebase:', error);
+                    updateConnectionStatus('offline', 'Revoke saved locally only');
+                }
+            } else {
+                console.log('⚠️ Firebase not configured, revoke saved locally only');
+                updateConnectionStatus('offline', 'Firebase not available');
+            }
             
             // Find the slot element and completely reset it
             const slot = document.querySelector(`[data-slot-id="${slotId}"]`);
@@ -2709,7 +2742,11 @@
                 }
             }, 100);
             
-            alert(`✅ Investment revoked successfully!\n\nSlot ${slotId} is now available (green) again.\nAll investment and affiliate data has been removed.`);
+            if (firebaseDeleteSuccess) {
+                alert(`✅ Investment revoked successfully and removed from Firebase!\n\nSlot ${slotId} is now available (green) again.\nAll investment and affiliate data has been removed.`);
+            } else {
+                alert(`⚠️ Investment revoked locally but failed to remove from Firebase.\n\nSlot ${slotId} is now available (green) again.\nPlease check your internet connection.`);
+            }
         }
 
         async function updateAffiliateEarnings(email) {
@@ -3484,6 +3521,9 @@
                 return;
             }
             
+            console.log('Deleting investor for slot:', slotId);
+            console.log('Investment data:', investment);
+            
             // Handle affiliate commission reversal if applicable
             if (investment.affiliateNumber) {
                 let affiliateEmail = null;
@@ -3508,14 +3548,50 @@
                         }
                     }
                     
+                    // Update affiliate data in Firebase
                     affiliates[affiliateEmail] = affiliate;
-                    await saveData('affiliates', affiliates);
+                    if (isFirebaseConfigured && db) {
+                        try {
+                            await db.collection('affiliates').doc(affiliateEmail).set(affiliate, { merge: true });
+                            console.log('✅ Affiliate data updated in Firebase after delete');
+                        } catch (error) {
+                            console.error('❌ Failed to update affiliate in Firebase:', error);
+                        }
+                    }
                 }
             }
             
-            // Remove the investment completely
+            // Remove the investment from local storage
             delete investments[slotId];
-            await saveData('investments', investments);
+            
+            // Remove from Firebase
+            let firebaseDeleteSuccess = false;
+            
+            if (isFirebaseConfigured && db) {
+                updateConnectionStatus('loading', 'Deleting investment from Firebase...');
+                
+                try {
+                    const docRef = db.collection('investments').doc(slotId);
+                    const doc = await docRef.get();
+                    
+                    if (doc.exists) {
+                        await docRef.delete();
+                        firebaseDeleteSuccess = true;
+                        updateConnectionStatus('online', 'Investment deleted from Firebase');
+                        console.log('✅ Investment deleted from Firebase:', slotId);
+                    } else {
+                        firebaseDeleteSuccess = true;
+                        updateConnectionStatus('online', 'Investment not found in Firebase (already removed)');
+                        console.log('ℹ️ Investment not found in Firebase:', slotId);
+                    }
+                } catch (error) {
+                    console.error('❌ Failed to delete investment from Firebase:', error);
+                    updateConnectionStatus('offline', 'Delete saved locally only');
+                }
+            } else {
+                console.log('⚠️ Firebase not configured, delete saved locally only');
+                updateConnectionStatus('offline', 'Firebase not available');
+            }
             
             // Find and remove the slot element completely
             const slot = document.querySelector(`[data-slot-id="${slotId}"]`);
@@ -3537,7 +3613,11 @@
                 }
             }, 100);
             
-            alert(`✅ Investor deleted permanently!\n\nAll data for ${investment.fullName} has been removed from the system.`);
+            if (firebaseDeleteSuccess) {
+                alert(`✅ Investor deleted permanently from Firebase!\n\nAll data for ${investment.fullName} has been removed from the system.`);
+            } else {
+                alert(`⚠️ Investor deleted locally but failed to remove from Firebase.\n\nAll data for ${investment.fullName} has been removed locally.\nPlease check your internet connection.`);
+            }
         }
 
         function confirmDeleteAffiliate(email) {
@@ -3653,5 +3733,5 @@
             alert('✅ All affiliate data cleared successfully!');
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98618450c56a9891',t:'MTc1OTA0NDQzMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9861980897166e8a',t:'MTc1OTA0NTIzOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
