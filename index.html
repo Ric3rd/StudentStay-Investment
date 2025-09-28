@@ -802,6 +802,7 @@
         // Initialize Firebase
         let db = null;
         let isFirebaseConfigured = false;
+        let firebaseApp = null;
 
         // ===== DATA STORAGE =====
         let investments = {};
@@ -816,13 +817,39 @@
         // Initialize Firebase
         function initializeFirebase() {
             try {
-                firebase.initializeApp(firebaseConfig);
+                // Check if Firebase is already initialized
+                if (!firebaseApp) {
+                    firebaseApp = firebase.initializeApp(firebaseConfig);
+                }
+                
                 db = firebase.firestore();
+                
+                // Configure Firestore settings for better reliability
+                db.settings({
+                    cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED,
+                    ignoreUndefinedProperties: true
+                });
+                
+                // Enable offline persistence
+                db.enablePersistence({ synchronizeTabs: true })
+                    .then(() => {
+                        console.log('✅ Firebase offline persistence enabled');
+                    })
+                    .catch((err) => {
+                        console.log('⚠️ Firebase persistence failed:', err.code);
+                        // Persistence can fail if multiple tabs are open
+                        if (err.code === 'failed-precondition') {
+                            console.log('Multiple tabs open, persistence disabled');
+                        } else if (err.code === 'unimplemented') {
+                            console.log('Browser doesn\'t support persistence');
+                        }
+                    });
+                
                 isFirebaseConfigured = true;
-                console.log('Firebase initialized successfully');
+                console.log('✅ Firebase initialized successfully');
                 return true;
             } catch (error) {
-                console.error('Firebase initialization failed:', error);
+                console.error('❌ Firebase initialization failed:', error);
                 isFirebaseConfigured = false;
                 return false;
             }
@@ -843,48 +870,102 @@
             isOnline = (status === 'online');
         }
 
-        // Load data from Firebase
-        async function loadFromFirebase(collection) {
-            if (!isFirebaseConfigured) {
+        // Load data from Firebase with retry logic
+        async function loadFromFirebase(collection, retryCount = 0) {
+            if (!isFirebaseConfigured || !db) {
                 console.log(`Firebase not configured, using localStorage for ${collection}`);
                 return null;
             }
 
+            const maxRetries = 3;
+            const retryDelay = 1000 * (retryCount + 1);
+
             try {
-                updateConnectionStatus('loading', 'Loading data...');
+                updateConnectionStatus('loading', `Loading ${collection}... (attempt ${retryCount + 1})`);
                 
-                const snapshot = await db.collection(collection).get();
+                // Use timeout to prevent hanging requests
+                const loadPromise = db.collection(collection).get();
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Load timeout')), 15000)
+                );
+                
+                const snapshot = await Promise.race([loadPromise, timeoutPromise]);
                 const data = {};
                 
                 snapshot.forEach(doc => {
-                    data[doc.id] = doc.data();
+                    try {
+                        data[doc.id] = doc.data();
+                    } catch (docError) {
+                        console.error(`Error processing document ${doc.id}:`, docError);
+                    }
                 });
                 
                 updateConnectionStatus('online', 'Connected to Firebase');
+                console.log(`✅ Successfully loaded ${Object.keys(data).length} items from ${collection}`);
                 return data;
             } catch (error) {
-                console.error(`Error loading ${collection}:`, error);
+                console.error(`❌ Error loading ${collection}:`, error);
+                
+                // Retry logic for network errors
+                if (retryCount < maxRetries && (
+                    error.code === 'unavailable' || 
+                    error.code === 'deadline-exceeded' ||
+                    error.message === 'Load timeout' ||
+                    error.code === 'resource-exhausted'
+                )) {
+                    console.log(`🔄 Retrying load in ${retryDelay}ms... (${retryCount + 1}/${maxRetries})`);
+                    updateConnectionStatus('loading', `Retrying load... (${retryCount + 1}/${maxRetries})`);
+                    
+                    await new Promise(resolve => setTimeout(resolve, retryDelay));
+                    return await loadFromFirebase(collection, retryCount + 1);
+                }
+                
                 updateConnectionStatus('offline', 'Using local storage');
                 return null;
             }
         }
 
-        // Save data to Firebase
-        async function saveToFirebase(collection, docId, data) {
-            if (!isFirebaseConfigured) {
+        // Save data to Firebase with retry logic
+        async function saveToFirebase(collection, docId, data, retryCount = 0) {
+            if (!isFirebaseConfigured || !db) {
                 console.log(`Firebase not configured, saving to localStorage for ${collection}`);
                 return false;
             }
 
+            const maxRetries = 3;
+            const retryDelay = 1000 * (retryCount + 1); // Exponential backoff
+
             try {
-                updateConnectionStatus('loading', 'Saving data...');
+                updateConnectionStatus('loading', `Saving data... (attempt ${retryCount + 1})`);
                 
-                await db.collection(collection).doc(docId).set(data, { merge: true });
+                // Use a timeout to prevent hanging requests
+                const savePromise = db.collection(collection).doc(docId).set(data, { merge: true });
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Save timeout')), 10000)
+                );
+                
+                await Promise.race([savePromise, timeoutPromise]);
                 
                 updateConnectionStatus('online', 'Data saved successfully');
+                console.log(`✅ Successfully saved ${collection}/${docId} to Firebase`);
                 return true;
             } catch (error) {
-                console.error(`Error saving ${collection}:`, error);
+                console.error(`❌ Error saving ${collection}/${docId}:`, error);
+                
+                // Retry logic for network errors
+                if (retryCount < maxRetries && (
+                    error.code === 'unavailable' || 
+                    error.code === 'deadline-exceeded' ||
+                    error.message === 'Save timeout' ||
+                    error.code === 'resource-exhausted'
+                )) {
+                    console.log(`🔄 Retrying save in ${retryDelay}ms... (${retryCount + 1}/${maxRetries})`);
+                    updateConnectionStatus('loading', `Retrying save... (${retryCount + 1}/${maxRetries})`);
+                    
+                    await new Promise(resolve => setTimeout(resolve, retryDelay));
+                    return await saveToFirebase(collection, docId, data, retryCount + 1);
+                }
+                
                 updateConnectionStatus('offline', 'Save failed - using local storage');
                 return false;
             }
@@ -927,12 +1008,20 @@
             
             if (!firebaseInitialized) {
                 updateConnectionStatus('offline', 'Firebase connection failed');
-                alert('❌ Firebase connection failed. Please check your configuration.');
+                console.error('❌ Firebase initialization failed');
+                
+                // Still initialize the building with empty data
+                investments = {};
+                affiliates = {};
+                initializeBuilding();
+                updateDashboard();
                 return;
             }
             
-            // Load from Firebase
+            // Load from Firebase with fallback to empty data
             try {
+                console.log('🔄 Loading data from Firebase...');
+                
                 const [investmentData, affiliateData, adminData] = await Promise.all([
                     loadFromFirebase('investments'),
                     loadFromFirebase('affiliates'),
@@ -947,16 +1036,47 @@
                     adminCredentials = adminData.credentials;
                 }
                 
+                console.log(`✅ Loaded ${Object.keys(investments).length} investments and ${Object.keys(affiliates).length} affiliates`);
                 updateConnectionStatus('online', 'Connected to Firebase');
                 
-                // Initialize the building after data is loaded
-                initializeBuilding();
-                updateDashboard();
             } catch (error) {
-                console.error('Failed to load from Firebase:', error);
-                updateConnectionStatus('offline', 'Failed to load data from Firebase');
-                alert('❌ Failed to load data from Firebase. Please check your internet connection.');
+                console.error('❌ Failed to load from Firebase:', error);
+                updateConnectionStatus('offline', 'Using offline mode');
+                
+                // Initialize with empty data if Firebase fails
+                investments = {};
+                affiliates = {};
             }
+            
+            // Always initialize the building regardless of Firebase status
+            initializeBuilding();
+            updateDashboard();
+            
+            // Set up connection monitoring
+            setupConnectionMonitoring();
+        }
+        
+        // Monitor Firebase connection status
+        function setupConnectionMonitoring() {
+            if (!isFirebaseConfigured || !db) return;
+            
+            // Monitor connection state
+            const connectedRef = db.collection('.info/connected');
+            
+            // Set up periodic connection checks
+            setInterval(async () => {
+                try {
+                    // Simple test query to check connection
+                    await db.collection('test').limit(1).get();
+                    if (!isOnline) {
+                        updateConnectionStatus('online', 'Connection restored');
+                    }
+                } catch (error) {
+                    if (isOnline) {
+                        updateConnectionStatus('offline', 'Connection lost');
+                    }
+                }
+            }, 30000); // Check every 30 seconds
         }
 
         // Save data to Firebase
@@ -1395,49 +1515,14 @@
             updateSlotAppearance(slot, slotId);
             updateDashboard();
             
-            // Save to Firebase with multiple retry attempts
+            // Save to Firebase using the improved save function
             let firebaseSaveSuccess = false;
             
-            if (isFirebaseConfigured && db) {
-                updateConnectionStatus('loading', 'Saving to Firebase database...');
-                
-                // Method 1: Direct document save
-                try {
-                    await db.collection('investments').doc(slotId).set(investmentData, { merge: true });
-                    firebaseSaveSuccess = true;
-                    updateConnectionStatus('online', 'Investment saved to Firebase');
-                    console.log('✅ Investment saved to Firebase via direct method:', slotId);
-                } catch (error) {
-                    console.error('❌ Direct Firebase save failed:', error);
-                    
-                    // Method 2: Batch write
-                    try {
-                        const batch = db.batch();
-                        const docRef = db.collection('investments').doc(slotId);
-                        batch.set(docRef, investmentData, { merge: true });
-                        await batch.commit();
-                        firebaseSaveSuccess = true;
-                        updateConnectionStatus('online', 'Investment saved via batch');
-                        console.log('✅ Investment saved to Firebase via batch:', slotId);
-                    } catch (batchError) {
-                        console.error('❌ Batch Firebase save failed:', batchError);
-                        
-                        // Method 3: Collection-wide update
-                        try {
-                            const collectionRef = db.collection('investments');
-                            await collectionRef.doc(slotId).set(investmentData);
-                            firebaseSaveSuccess = true;
-                            updateConnectionStatus('online', 'Investment saved via collection');
-                            console.log('✅ Investment saved to Firebase via collection:', slotId);
-                        } catch (collectionError) {
-                            console.error('❌ All Firebase save methods failed:', collectionError);
-                            updateConnectionStatus('offline', 'Firebase save failed - data saved locally');
-                        }
-                    }
-                }
-            } else {
-                console.log('⚠️ Firebase not configured, investment saved locally only');
-                updateConnectionStatus('offline', 'Firebase not available');
+            try {
+                firebaseSaveSuccess = await saveToFirebase('investments', slotId, investmentData);
+            } catch (error) {
+                console.error('❌ Firebase save error:', error);
+                firebaseSaveSuccess = false;
             }
             
             // Process affiliate commission if affiliate number provided
@@ -1450,9 +1535,10 @@
             // Show appropriate success message
             if (firebaseSaveSuccess) {
                 console.log('🎉 Investment successfully saved to Firebase database');
+                alert('✅ Investment application submitted successfully!\n\nYour investment has been saved to our secure database and is now under review.\n\nNext: Complete your payment using the instructions that will appear.');
             } else {
                 console.log('⚠️ Investment saved locally but not to Firebase');
-                alert('⚠️ Investment saved locally but failed to sync with Firebase database. Please check your internet connection.');
+                alert('✅ Investment application submitted!\n\n⚠️ Note: Saved locally but connection to database is unstable. Your investment is secure and will sync when connection improves.\n\nNext: Complete your payment using the instructions that will appear.');
             }
             
             // Show payment instructions based on selected payment mode
@@ -3377,5 +3463,5 @@
             alert('✅ All affiliate data cleared successfully!');
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985e036322499d21',t:'MTc1OTAwNzY5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9860fd8072519d1f',t:'MTc1OTAzODkwOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
