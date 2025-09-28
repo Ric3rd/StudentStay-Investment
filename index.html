@@ -143,37 +143,7 @@
                 </a>
             </div>
             
-            <!-- Investment Benefits Statement -->
-            <div class="bg-gradient-to-r from-yellow-400/20 to-orange-400/20 backdrop-blur-sm rounded-xl p-6 max-w-5xl mx-auto mb-6 border border-yellow-400/30">
-                <div class="text-center">
-                    <h2 class="text-2xl font-bold gold-accent mb-4">🏢 INVEST IN REAL PROPERTY, EARN REAL DIVIDENDS 🏢</h2>
-                    <p class="text-lg font-semibold mb-3">This is NOT a virtual investment - You're investing in an ACTUAL BOARDING HOUSE!</p>
-                    <div class="grid md:grid-cols-2 gap-4 text-left">
-                        <div class="bg-white/10 rounded-lg p-4">
-                            <h3 class="font-bold text-yellow-300 mb-2">✅ GUARANTEED REAL PROPERTY</h3>
-                            <ul class="text-sm space-y-1">
-                                <li>• Physical boarding house construction</li>
-                                <li>• Tangible real estate investment</li>
-                                <li>• Legal property documentation</li>
-                                <li>• Prime location for students</li>
-                            </ul>
-                        </div>
-                        <div class="bg-white/10 rounded-lg p-4">
-                            <h3 class="font-bold text-green-300 mb-2">💰 MONTHLY DIVIDEND PAYMENTS</h3>
-                            <ul class="text-sm space-y-1">
-                                <li>• Regular rental income distribution</li>
-                                <li>• Paid directly to your chosen account</li>
-                                <li>• Transparent profit sharing system</li>
-                                <li>• Long-term passive income stream</li>
-                                <li>• ⚠️ Dividends start AFTER building completion</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <p class="text-lg font-bold mt-4 text-yellow-200">
-                        🎯 SECURE YOUR FINANCIAL FUTURE - INVEST IN REAL PROPERTY TODAY! 🎯
-                    </p>
-                </div>
-            </div>
+
             
             <div class="bg-white/10 backdrop-blur-sm rounded-lg p-6 max-w-4xl mx-auto">
                 <h2 class="text-2xl font-semibold mb-4">Investment Overview</h2>
@@ -205,12 +175,12 @@
     <!-- Building Visualization -->
     <main class="container mx-auto px-6 pb-12">
         <div class="building-container max-w-6xl mx-auto">
-            <h2 class="text-white text-3xl font-bold text-center mb-8">Select Your Investment Slot</h2>
+            <h2 class="text-white text-3xl font-bold text-center mb-8">Select Your Investment Unit</h2>
             
             <!-- Loading indicator -->
             <div id="buildingLoading" class="text-center py-12">
                 <div class="loading-spinner"></div>
-                <p class="text-white mt-4">Loading investment slots...</p>
+                <p class="text-white mt-4">Loading investment units...</p>
             </div>
             
             <!-- Building floors will be generated here -->
@@ -271,15 +241,15 @@
             <div class="grid md:grid-cols-4 gap-6 text-center">
                 <div class="bg-green-500/20 rounded-lg p-4">
                     <div class="text-3xl font-bold text-green-300" id="availableSlots">-</div>
-                    <div class="text-sm text-white">Available Slots</div>
+                    <div class="text-sm text-white">Available Units</div>
                 </div>
                 <div class="bg-yellow-500/20 rounded-lg p-4">
                     <div class="text-3xl font-bold text-yellow-300" id="pendingSlots">-</div>
-                    <div class="text-sm text-white">Pending Slots</div>
+                    <div class="text-sm text-white">Pending Units</div>
                 </div>
                 <div class="bg-red-500/20 rounded-lg p-4">
                     <div class="text-3xl font-bold text-red-300" id="occupiedSlots">-</div>
-                    <div class="text-sm text-white">Occupied Slots</div>
+                    <div class="text-sm text-white">Occupied Units</div>
                 </div>
                 <div class="bg-blue-500/20 rounded-lg p-4">
                     <div class="text-3xl font-bold text-blue-300" id="totalRaised">₱-</div>
@@ -328,6 +298,12 @@
                 </div>
                 
                 <div>
+                    <label class="block text-sm font-medium mb-2">Create Portfolio Password *</label>
+                    <input type="password" id="portfolioPassword" name="portfolioPassword" required minlength="6" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500">
+                    <div class="text-xs text-gray-500 mt-1">This password will be used to access your investment portfolio later</div>
+                </div>
+                
+                <div>
                     <label class="block text-sm font-medium mb-2">Affiliate Number (Optional)</label>
                     <input type="text" id="affiliateNumber" name="affiliateNumber" placeholder="Enter affiliate number if referred" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500">
                     <div class="text-xs text-gray-500 mt-1">If someone referred you, enter their affiliate number to give them commission</div>
@@ -335,13 +311,18 @@
                 
                 <div>
                     <label class="block text-sm font-medium mb-2">Mode of Payment *</label>
-                    <select id="paymentMode" name="paymentMode" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500">
+                    <select id="paymentMode" name="paymentMode" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500" onchange="showPaymentInstructions()">
                         <option value="">Select Payment Method</option>
                         <option value="GCash">GCash</option>
                         <option value="Palawan Pay">Palawan Pay</option>
                         <option value="Bank Transfer">Bank Transfer</option>
                         <option value="PayPal">PayPal</option>
                     </select>
+                </div>
+                
+                <!-- Dynamic Payment Instructions -->
+                <div id="paymentInstructions" class="hidden">
+                    <!-- Payment instructions will be shown here based on selection -->
                 </div>
                 
                 <div>
@@ -395,7 +376,6 @@
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-2xl font-bold">Admin Panel</h3>
                     <div class="space-x-2">
-                        <button onclick="refreshData()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">🔄 Refresh Data</button>
                         <button onclick="closeAdminModal()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Close</button>
                     </div>
                 </div>
@@ -404,6 +384,7 @@
                 <div class="flex mb-4 border-b">
                     <button onclick="showAdminTab('investments')" id="adminInvestmentTab" class="px-4 py-2 font-semibold border-b-2 border-blue-600 text-blue-600">Investments</button>
                     <button onclick="showAdminTab('affiliates')" id="adminAffiliateTab" class="px-4 py-2 font-semibold text-gray-500 hover:text-gray-700">Affiliates</button>
+                    <button onclick="showAdminTab('settings')" id="adminSettingsTab" class="px-4 py-2 font-semibold text-gray-500 hover:text-gray-700">Settings</button>
                 </div>
                 
                 <div id="adminInvestmentContent" class="space-y-4">
@@ -412,6 +393,10 @@
                 
                 <div id="adminAffiliateContent" class="space-y-4 hidden">
                     <!-- Affiliate management will be loaded here -->
+                </div>
+                
+                <div id="adminSettingsContent" class="space-y-4 hidden">
+                    <!-- Settings content will be loaded here -->
                 </div>
             </div>
         </div>
@@ -480,9 +465,10 @@
             <h3 class="text-3xl font-bold mb-6 text-center">💼 Investment Portfolio Dashboard</h3>
             
             <div id="portfolioLogin" class="text-center">
-                <p class="mb-4 text-gray-600">Enter your email to view your investment portfolio</p>
+                <p class="mb-4 text-gray-600">Enter your email and portfolio password to view your investments</p>
                 <div class="space-y-4 max-w-sm mx-auto">
                     <input type="email" id="portfolioEmail" placeholder="Enter your email address" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <input type="password" id="portfolioPasswordLogin" placeholder="Enter your portfolio password" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
                     <button onclick="loadPortfolio()" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700">View Portfolio</button>
                     <button onclick="closePortfolioModal()" class="w-full bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600">Cancel</button>
                 </div>
@@ -504,7 +490,7 @@
                     </div>
                     <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
                         <div class="text-2xl font-bold text-purple-800" id="totalSlots">0</div>
-                        <div class="text-sm text-purple-600">Investment Slots</div>
+                        <div class="text-sm text-purple-600">Investment Units</div>
                     </div>
                 </div>
                 
@@ -604,6 +590,133 @@
         </div>
     </div>
 
+    <!-- Budget Recommendation Modal -->
+    <div id="budgetModal" class="modal fixed inset-0 z-50 hidden items-center justify-center p-4">
+        <div class="form-container max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-3xl font-bold mb-6 text-center">💡 Find Your Perfect Investment</h3>
+            
+            <div class="bg-gradient-to-r from-purple-100 to-blue-100 border border-purple-200 rounded-lg p-6 mb-6">
+                <h4 class="text-xl font-bold text-purple-800 mb-3">🎯 Let us recommend the best investment for your budget!</h4>
+                <p class="text-purple-700">Enter your budget and we'll show you the perfect investment slots that match your financial capacity.</p>
+            </div>
+            
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-lg font-semibold mb-3">💰 What's your investment budget?</label>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                        <button onclick="setBudget(500)" class="budget-btn bg-gray-100 hover:bg-purple-100 border-2 border-gray-300 hover:border-purple-500 p-3 rounded-lg text-center transition-all">
+                            <div class="font-bold">₱500</div>
+                            <div class="text-xs text-gray-600">Micro</div>
+                        </button>
+                        <button onclick="setBudget(1000)" class="budget-btn bg-gray-100 hover:bg-purple-100 border-2 border-gray-300 hover:border-purple-500 p-3 rounded-lg text-center transition-all">
+                            <div class="font-bold">₱1,000</div>
+                            <div class="text-xs text-gray-600">Starter</div>
+                        </button>
+                        <button onclick="setBudget(5000)" class="budget-btn bg-gray-100 hover:bg-purple-100 border-2 border-gray-300 hover:border-purple-500 p-3 rounded-lg text-center transition-all">
+                            <div class="font-bold">₱5,000</div>
+                            <div class="text-xs text-gray-600">Economy</div>
+                        </button>
+                        <button onclick="setBudget(10000)" class="budget-btn bg-gray-100 hover:bg-purple-100 border-2 border-gray-300 hover:border-purple-500 p-3 rounded-lg text-center transition-all">
+                            <div class="font-bold">₱10,000</div>
+                            <div class="text-xs text-gray-600">Basic</div>
+                        </button>
+                        <button onclick="setBudget(20000)" class="budget-btn bg-gray-100 hover:bg-purple-100 border-2 border-gray-300 hover:border-purple-500 p-3 rounded-lg text-center transition-all">
+                            <div class="font-bold">₱20,000</div>
+                            <div class="text-xs text-gray-600">Standard</div>
+                        </button>
+                        <button onclick="setBudget(30000)" class="budget-btn bg-gray-100 hover:bg-purple-100 border-2 border-gray-300 hover:border-purple-500 p-3 rounded-lg text-center transition-all">
+                            <div class="font-bold">₱30,000</div>
+                            <div class="text-xs text-gray-600">Deluxe</div>
+                        </button>
+                        <button onclick="setBudget(40000)" class="budget-btn bg-gray-100 hover:bg-purple-100 border-2 border-gray-300 hover:border-purple-500 p-3 rounded-lg text-center transition-all">
+                            <div class="font-bold">₱40,000</div>
+                            <div class="text-xs text-gray-600">Premium</div>
+                        </button>
+                        <button onclick="setBudget(50000)" class="budget-btn bg-gray-100 hover:bg-purple-100 border-2 border-gray-300 hover:border-purple-500 p-3 rounded-lg text-center transition-all">
+                            <div class="font-bold">₱50,000</div>
+                            <div class="text-xs text-gray-600">Penthouse</div>
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm font-medium">Or enter custom amount:</span>
+                        <input type="number" id="customBudget" placeholder="₱0" min="500" max="50000" step="100" 
+                               class="flex-1 p-3 border rounded-lg focus:ring-2 focus:ring-purple-500" 
+                               onchange="setBudget(this.value)">
+                    </div>
+                </div>
+                
+                <div id="budgetRecommendation" class="hidden">
+                    <!-- Recommendation content will be loaded here -->
+                </div>
+                
+                <div class="flex gap-3 pt-4">
+                    <button onclick="closeBudgetModal()" class="flex-1 bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600 transition-colors">Close</button>
+                    <button id="investNowBtn" onclick="proceedToInvestment()" class="flex-1 bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition-colors hidden">
+                        🚀 Invest Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Welcome Popup Modal -->
+    <div id="welcomeModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="form-container max-w-4xl w-full p-8 max-h-[90vh] overflow-y-auto">
+            <div class="bg-gradient-to-r from-yellow-400/20 to-orange-400/20 backdrop-blur-sm rounded-xl p-6 border border-yellow-400/30">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4">🏢 INVEST IN REAL PROPERTY, EARN REAL DIVIDENDS 🏢</h2>
+                    <p class="text-xl font-semibold mb-4">This is NOT a virtual investment - You're investing in an ACTUAL BOARDING HOUSE!</p>
+                    
+                    <div class="bg-white/80 rounded-lg p-6 mb-6 text-left max-w-3xl mx-auto">
+                        <h3 class="text-xl font-bold text-blue-800 mb-4 text-center">💝 Welcome, Future Property Owner!</h3>
+                        <p class="text-gray-700 mb-4 leading-relaxed text-center">
+                            Own a piece of <strong>real boarding house property</strong> and earn monthly dividends! Investment options from ₱500 to ₱50,000 - every investment brings you closer to financial freedom.
+                        </p>
+                        <div class="bg-green-50 border-l-4 border-green-400 p-4 rounded">
+                            <p class="text-green-800 font-semibold text-center">
+                                🌟 Start building your wealth today - your future self will thank you! 🌟
+                            </p>
+                        </div>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4 text-left mb-6">
+                        <div class="bg-white/10 rounded-lg p-4">
+                            <h3 class="font-bold text-yellow-600 mb-2">✅ GUARANTEED REAL PROPERTY</h3>
+                            <ul class="text-sm space-y-1 text-gray-700">
+                                <li>• Physical boarding house construction</li>
+                                <li>• Tangible real estate investment</li>
+                                <li>• Legal property documentation</li>
+                                <li>• Prime location for students</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white/10 rounded-lg p-4">
+                            <h3 class="font-bold text-green-600 mb-2">💰 MONTHLY DIVIDEND PAYMENTS</h3>
+                            <ul class="text-sm space-y-1 text-gray-700">
+                                <li>• Regular rental income distribution</li>
+                                <li>• Paid directly to your chosen account</li>
+                                <li>• Transparent profit sharing system</li>
+                                <li>• Long-term passive income stream</li>
+                                <li>• ⚠️ Dividends start AFTER building completion</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <p class="text-xl font-bold mb-6 text-yellow-600">
+                        🎯 SECURE YOUR FINANCIAL FUTURE - INVEST IN REAL PROPERTY TODAY! 🎯
+                    </p>
+                    
+                    <div class="flex gap-4 justify-center">
+                        <button onclick="closeWelcomeModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg font-bold text-lg transition-colors">
+                            🏠 VIEW INVESTMENT UNITS
+                        </button>
+                        <button onclick="showBudgetRecommendationFromWelcome()" class="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-lg font-bold text-lg transition-colors">
+                            💡 GET INVESTMENT RECOMMENDATION
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Affiliate Dashboard Modal -->
     <div id="affiliateDashboardModal" class="modal fixed inset-0 z-50 hidden items-center justify-center p-4">
         <div class="form-container max-w-4xl w-full p-8 max-h-[90vh] overflow-y-auto">
@@ -689,11 +802,12 @@
         // Initialize Firebase
         let db = null;
         let isFirebaseConfigured = false;
+        let firebaseApp = null;
 
         // ===== DATA STORAGE =====
         let investments = {};
         let affiliates = {};
-        let adminCredentials = { username: "ric3rd", password: "nacs2512364" };
+        let adminCredentials = { username: "admin", password: "123" };
         let isAdminLoggedIn = false;
         let currentPhotoSlot = null;
         let isOnline = false;
@@ -703,13 +817,39 @@
         // Initialize Firebase
         function initializeFirebase() {
             try {
-                firebase.initializeApp(firebaseConfig);
+                // Check if Firebase is already initialized
+                if (!firebaseApp) {
+                    firebaseApp = firebase.initializeApp(firebaseConfig);
+                }
+                
                 db = firebase.firestore();
+                
+                // Configure Firestore settings for better reliability
+                db.settings({
+                    cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED,
+                    ignoreUndefinedProperties: true
+                });
+                
+                // Enable offline persistence
+                db.enablePersistence({ synchronizeTabs: true })
+                    .then(() => {
+                        console.log('✅ Firebase offline persistence enabled');
+                    })
+                    .catch((err) => {
+                        console.log('⚠️ Firebase persistence failed:', err.code);
+                        // Persistence can fail if multiple tabs are open
+                        if (err.code === 'failed-precondition') {
+                            console.log('Multiple tabs open, persistence disabled');
+                        } else if (err.code === 'unimplemented') {
+                            console.log('Browser doesn\'t support persistence');
+                        }
+                    });
+                
                 isFirebaseConfigured = true;
-                console.log('Firebase initialized successfully');
+                console.log('✅ Firebase initialized successfully');
                 return true;
             } catch (error) {
-                console.error('Firebase initialization failed:', error);
+                console.error('❌ Firebase initialization failed:', error);
                 isFirebaseConfigured = false;
                 return false;
             }
@@ -730,48 +870,102 @@
             isOnline = (status === 'online');
         }
 
-        // Load data from Firebase
-        async function loadFromFirebase(collection) {
-            if (!isFirebaseConfigured) {
+        // Load data from Firebase with retry logic
+        async function loadFromFirebase(collection, retryCount = 0) {
+            if (!isFirebaseConfigured || !db) {
                 console.log(`Firebase not configured, using localStorage for ${collection}`);
                 return null;
             }
 
+            const maxRetries = 3;
+            const retryDelay = 1000 * (retryCount + 1);
+
             try {
-                updateConnectionStatus('loading', 'Loading data...');
+                updateConnectionStatus('loading', `Loading ${collection}... (attempt ${retryCount + 1})`);
                 
-                const snapshot = await db.collection(collection).get();
+                // Use timeout to prevent hanging requests
+                const loadPromise = db.collection(collection).get();
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Load timeout')), 15000)
+                );
+                
+                const snapshot = await Promise.race([loadPromise, timeoutPromise]);
                 const data = {};
                 
                 snapshot.forEach(doc => {
-                    data[doc.id] = doc.data();
+                    try {
+                        data[doc.id] = doc.data();
+                    } catch (docError) {
+                        console.error(`Error processing document ${doc.id}:`, docError);
+                    }
                 });
                 
                 updateConnectionStatus('online', 'Connected to Firebase');
+                console.log(`✅ Successfully loaded ${Object.keys(data).length} items from ${collection}`);
                 return data;
             } catch (error) {
-                console.error(`Error loading ${collection}:`, error);
+                console.error(`❌ Error loading ${collection}:`, error);
+                
+                // Retry logic for network errors
+                if (retryCount < maxRetries && (
+                    error.code === 'unavailable' || 
+                    error.code === 'deadline-exceeded' ||
+                    error.message === 'Load timeout' ||
+                    error.code === 'resource-exhausted'
+                )) {
+                    console.log(`🔄 Retrying load in ${retryDelay}ms... (${retryCount + 1}/${maxRetries})`);
+                    updateConnectionStatus('loading', `Retrying load... (${retryCount + 1}/${maxRetries})`);
+                    
+                    await new Promise(resolve => setTimeout(resolve, retryDelay));
+                    return await loadFromFirebase(collection, retryCount + 1);
+                }
+                
                 updateConnectionStatus('offline', 'Using local storage');
                 return null;
             }
         }
 
-        // Save data to Firebase
-        async function saveToFirebase(collection, docId, data) {
-            if (!isFirebaseConfigured) {
+        // Save data to Firebase with retry logic
+        async function saveToFirebase(collection, docId, data, retryCount = 0) {
+            if (!isFirebaseConfigured || !db) {
                 console.log(`Firebase not configured, saving to localStorage for ${collection}`);
                 return false;
             }
 
+            const maxRetries = 3;
+            const retryDelay = 1000 * (retryCount + 1); // Exponential backoff
+
             try {
-                updateConnectionStatus('loading', 'Saving data...');
+                updateConnectionStatus('loading', `Saving data... (attempt ${retryCount + 1})`);
                 
-                await db.collection(collection).doc(docId).set(data, { merge: true });
+                // Use a timeout to prevent hanging requests
+                const savePromise = db.collection(collection).doc(docId).set(data, { merge: true });
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Save timeout')), 10000)
+                );
+                
+                await Promise.race([savePromise, timeoutPromise]);
                 
                 updateConnectionStatus('online', 'Data saved successfully');
+                console.log(`✅ Successfully saved ${collection}/${docId} to Firebase`);
                 return true;
             } catch (error) {
-                console.error(`Error saving ${collection}:`, error);
+                console.error(`❌ Error saving ${collection}/${docId}:`, error);
+                
+                // Retry logic for network errors
+                if (retryCount < maxRetries && (
+                    error.code === 'unavailable' || 
+                    error.code === 'deadline-exceeded' ||
+                    error.message === 'Save timeout' ||
+                    error.code === 'resource-exhausted'
+                )) {
+                    console.log(`🔄 Retrying save in ${retryDelay}ms... (${retryCount + 1}/${maxRetries})`);
+                    updateConnectionStatus('loading', `Retrying save... (${retryCount + 1}/${maxRetries})`);
+                    
+                    await new Promise(resolve => setTimeout(resolve, retryDelay));
+                    return await saveToFirebase(collection, docId, data, retryCount + 1);
+                }
+                
                 updateConnectionStatus('offline', 'Save failed - using local storage');
                 return false;
             }
@@ -814,30 +1008,72 @@
             
             if (!firebaseInitialized) {
                 updateConnectionStatus('offline', 'Firebase connection failed');
-                alert('❌ Firebase connection failed. Please check your configuration.');
+                console.error('❌ Firebase initialization failed');
+                
+                // Still initialize the building with empty data
+                investments = {};
+                affiliates = {};
+                initializeBuilding();
+                updateDashboard();
                 return;
             }
             
-            // Load from Firebase
+            // Load from Firebase with fallback to empty data
             try {
-                const [investmentData, affiliateData] = await Promise.all([
+                console.log('🔄 Loading data from Firebase...');
+                
+                const [investmentData, affiliateData, adminData] = await Promise.all([
                     loadFromFirebase('investments'),
-                    loadFromFirebase('affiliates')
+                    loadFromFirebase('affiliates'),
+                    loadFromFirebase('admin')
                 ]);
                 
                 investments = investmentData || {};
                 affiliates = affiliateData || {};
                 
+                // Load admin credentials from Firebase if they exist
+                if (adminData && adminData.credentials) {
+                    adminCredentials = adminData.credentials;
+                }
+                
+                console.log(`✅ Loaded ${Object.keys(investments).length} investments and ${Object.keys(affiliates).length} affiliates`);
                 updateConnectionStatus('online', 'Connected to Firebase');
                 
-                // Initialize the building after data is loaded
-                initializeBuilding();
-                updateDashboard();
             } catch (error) {
-                console.error('Failed to load from Firebase:', error);
-                updateConnectionStatus('offline', 'Failed to load data from Firebase');
-                alert('❌ Failed to load data from Firebase. Please check your internet connection.');
+                console.error('❌ Failed to load from Firebase:', error);
+                updateConnectionStatus('offline', 'Using offline mode');
+                
+                // Initialize with empty data if Firebase fails
+                investments = {};
+                affiliates = {};
             }
+            
+            // Always initialize the building regardless of Firebase status
+            initializeBuilding();
+            updateDashboard();
+            
+            // Set up connection monitoring
+            setupConnectionMonitoring();
+        }
+        
+        // Monitor Firebase connection status
+        function setupConnectionMonitoring() {
+            if (!isFirebaseConfigured || !db) return;
+            
+            // Set up periodic connection checks
+            setInterval(async () => {
+                try {
+                    // Simple test query to check connection
+                    await db.collection('investments').limit(1).get();
+                    if (!isOnline) {
+                        updateConnectionStatus('online', 'Connection restored');
+                    }
+                } catch (error) {
+                    if (isOnline) {
+                        updateConnectionStatus('offline', 'Connection lost');
+                    }
+                }
+            }, 30000); // Check every 30 seconds
         }
 
         // Save data to Firebase
@@ -911,7 +1147,27 @@
         // ===== INITIALIZATION =====
         document.addEventListener('DOMContentLoaded', function() {
             initializeData();
+            // Show welcome modal on page load
+            showWelcomeModal();
         });
+
+        // ===== WELCOME MODAL FUNCTIONS =====
+        function showWelcomeModal() {
+            const modal = document.getElementById('welcomeModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeWelcomeModal() {
+            const modal = document.getElementById('welcomeModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function showBudgetRecommendationFromWelcome() {
+            closeWelcomeModal();
+            showBudgetRecommendation();
+        }
 
         // Initialize building
         function initializeBuilding() {
@@ -1007,13 +1263,62 @@
         }
 
         function openInvestmentForm(slotKey, slot) {
+            const slotNumber = generateSlotNumber(slotKey);
+            const investmentAmount = parseInt(slot.dataset.price);
+            const floorName = slot.dataset.floorName;
+            
             document.getElementById('slotId').value = slotKey;
-            document.getElementById('floorInfo').value = `${slot.dataset.floorName} Floor`;
-            document.getElementById('investmentAmount').value = slot.dataset.price;
+            document.getElementById('floorInfo').value = `${floorName} Floor`;
+            document.getElementById('investmentAmount').value = investmentAmount;
+            
+            // Update the form header with investment details
+            updateInvestmentFormHeader(slotNumber, floorName, investmentAmount);
             
             const modal = document.getElementById('investmentModal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+        }
+
+        function generateSlotNumber(slotKey) {
+            // Extract floor and unit number from slotKey (e.g., "floor8_5" -> "F8-05")
+            const parts = slotKey.split('_');
+            const floorNum = parts[0].replace('floor', '');
+            const unitNum = parts[1].padStart(2, '0');
+            return `F${floorNum}-${unitNum}`;
+        }
+
+        function updateInvestmentFormHeader(slotNumber, floorName, amount) {
+            const existingHeader = document.querySelector('#investmentFormHeader');
+            if (existingHeader) {
+                existingHeader.remove();
+            }
+            
+            const formContainer = document.querySelector('#investmentModal .form-container');
+            const formTitle = formContainer.querySelector('h3');
+            
+            const headerDiv = document.createElement('div');
+            headerDiv.id = 'investmentFormHeader';
+            headerDiv.className = 'bg-gradient-to-r from-purple-100 to-blue-100 border border-purple-200 rounded-lg p-4 mb-6';
+            headerDiv.innerHTML = `
+                <div class="text-center">
+                    <div class="text-lg font-bold text-purple-800 mb-2">📍 Investment Details</div>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="bg-white/50 rounded-lg p-3">
+                            <div class="text-sm text-purple-600 font-medium">Unit Number</div>
+                            <div class="text-xl font-bold text-purple-800">${slotNumber}</div>
+                        </div>
+                        <div class="bg-white/50 rounded-lg p-3">
+                            <div class="text-sm text-purple-600 font-medium">Investment Amount</div>
+                            <div class="text-xl font-bold text-green-600">₱${amount.toLocaleString()}</div>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-sm text-purple-700">
+                        <strong>${floorName} Floor</strong> - Premium boarding house investment unit
+                    </div>
+                </div>
+            `;
+            
+            formTitle.insertAdjacentElement('afterend', headerDiv);
         }
 
         function closeModal() {
@@ -1055,6 +1360,102 @@
             }
         }
 
+        // ===== PAYMENT INSTRUCTIONS FUNCTION =====
+        function showPaymentInstructions() {
+            const paymentMode = document.getElementById('paymentMode').value;
+            const instructionsDiv = document.getElementById('paymentInstructions');
+            
+            if (!paymentMode) {
+                instructionsDiv.classList.add('hidden');
+                return;
+            }
+            
+            let instructionsHTML = '';
+            
+            switch(paymentMode) {
+                case 'GCash':
+                    instructionsHTML = `
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <h4 class="font-bold text-blue-800 mb-2">📱 GCash Payment Instructions</h4>
+                            <p class="text-blue-700 mb-2"><strong>Mobile Number:</strong> 09606555951</p>
+                            <p class="text-blue-700 text-sm mb-3">Send your investment amount to this GCash number.</p>
+                            <div class="bg-blue-100 p-3 rounded text-sm">
+                                <p class="text-blue-800 font-semibold mb-1">📸 IMPORTANT: After Payment</p>
+                                <p class="text-blue-700">1. Take a screenshot of your payment confirmation</p>
+                                <p class="text-blue-700">2. Join our Telegram group and send the screenshot for verification</p>
+                                <a href="https://t.me/+d_wxE9CigKA3OTA1" target="_blank" rel="noopener noreferrer" 
+                                   class="inline-block bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors mt-2">
+                                    📱 Join Telegram Group
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'Palawan Pay':
+                    instructionsHTML = `
+                        <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                            <h4 class="font-bold text-orange-800 mb-2">🏪 Palawan Pay Instructions</h4>
+                            <p class="text-orange-700 mb-2"><strong>Mobile Number:</strong> 09606555951</p>
+                            <p class="text-orange-700 text-sm mb-3">Send your investment amount to this mobile number via Palawan Pay.</p>
+                            <div class="bg-orange-100 p-3 rounded text-sm">
+                                <p class="text-orange-800 font-semibold mb-1">📸 IMPORTANT: After Payment</p>
+                                <p class="text-orange-700">1. Take a photo of your payment receipt</p>
+                                <p class="text-orange-700">2. Join our Telegram group and send the receipt for verification</p>
+                                <a href="https://t.me/+d_wxE9CigKA3OTA1" target="_blank" rel="noopener noreferrer" 
+                                   class="inline-block bg-orange-500 text-white px-3 py-1 rounded text-xs hover:bg-orange-600 transition-colors mt-2">
+                                    📱 Join Telegram Group
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'Bank Transfer':
+                    instructionsHTML = `
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <h4 class="font-bold text-green-800 mb-2">🏦 Bank Transfer Instructions</h4>
+                            <div class="text-green-700 mb-3">
+                                <p><strong>Bank:</strong> BPI</p>
+                                <p><strong>Account Number:</strong> 6889023641</p>
+                                <p><strong>Account Name:</strong> Ricardo Nacional III</p>
+                            </div>
+                            <div class="bg-green-100 p-3 rounded text-sm">
+                                <p class="text-green-800 font-semibold mb-1">📸 IMPORTANT: After Payment</p>
+                                <p class="text-green-700">1. Take a screenshot of your transfer confirmation</p>
+                                <p class="text-green-700">2. Join our Telegram group and send the screenshot for verification</p>
+                                <a href="https://t.me/+d_wxE9CigKA3OTA1" target="_blank" rel="noopener noreferrer" 
+                                   class="inline-block bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors mt-2">
+                                    📱 Join Telegram Group
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'PayPal':
+                    instructionsHTML = `
+                        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                            <h4 class="font-bold text-purple-800 mb-2">💰 PayPal Payment Instructions</h4>
+                            <div class="text-purple-700 mb-3">
+                                <p><strong>PayPal Email:</strong> ricardoiiinacional@gmail.com</p>
+                                <p><strong>Mobile:</strong> 09606555951</p>
+                            </div>
+                            <div class="bg-purple-100 p-3 rounded text-sm">
+                                <p class="text-purple-800 font-semibold mb-1">📸 IMPORTANT: After Payment</p>
+                                <p class="text-purple-700">1. Take a screenshot of your PayPal payment confirmation</p>
+                                <p class="text-purple-700">2. Join our Telegram group and send the screenshot for verification</p>
+                                <a href="https://t.me/+d_wxE9CigKA3OTA1" target="_blank" rel="noopener noreferrer" 
+                                   class="inline-block bg-purple-500 text-white px-3 py-1 rounded text-xs hover:bg-purple-600 transition-colors mt-2">
+                                    📱 Join Telegram Group
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+            
+            instructionsDiv.innerHTML = instructionsHTML;
+            instructionsDiv.classList.remove('hidden');
+        }
+
         // ===== FORM SUBMISSION =====
         document.getElementById('investmentForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -1080,43 +1481,77 @@
 
         async function saveInvestment(formData, slotId, photoDataUrl) {
             const affiliateNumber = formData.get('affiliateNumber');
+            const slotNumber = generateSlotNumber(slotId);
+            const paymentMode = formData.get('paymentMode');
             
             const investmentData = {
                 fullName: formData.get('fullName'),
                 email: formData.get('email'),
                 mobile: formData.get('mobile'),
+                portfolioPassword: formData.get('portfolioPassword'),
                 affiliateNumber: affiliateNumber,
-                paymentMode: formData.get('paymentMode'),
+                paymentMode: paymentMode,
                 dividendMode: formData.get('dividendMode'),
                 accountDetails: formData.get('accountDetails'),
                 customText: formData.get('customText'),
                 photo: photoDataUrl,
                 floorInfo: formData.get('floorInfo'),
                 investmentAmount: formData.get('investmentAmount'),
+                slotNumber: slotNumber,
                 status: 'pending',
                 timestamp: new Date().toISOString(),
                 dividendEarned: 0,
                 dividendWithdrawn: 0
             };
             
+            // Add to local storage first for immediate UI update
             investments[slotId] = investmentData;
-            await saveData('investments', investments);
+            
+            // Update slot appearance immediately
+            const slot = document.querySelector(`[data-slot-id="${slotId}"]`);
+            updateSlotAppearance(slot, slotId);
+            updateDashboard();
+            
+            // Save to Firebase with collection creation
+            let firebaseSaveSuccess = false;
+            
+            if (isFirebaseConfigured && db) {
+                updateConnectionStatus('loading', 'Saving investment to Firebase...');
+                
+                try {
+                    // Create the investments collection if it doesn't exist by adding the document
+                    await db.collection('investments').doc(slotId).set(investmentData);
+                    firebaseSaveSuccess = true;
+                    updateConnectionStatus('online', 'Investment saved to Firebase');
+                    console.log('✅ Investment saved to Firebase (collection created if needed):', slotId);
+                } catch (error) {
+                    console.error('❌ Firebase save error:', error);
+                    firebaseSaveSuccess = false;
+                    updateConnectionStatus('offline', 'Failed to save to Firebase');
+                }
+            } else {
+                console.log('⚠️ Firebase not configured');
+                updateConnectionStatus('offline', 'Firebase not available');
+            }
             
             // Process affiliate commission if affiliate number provided
             if (affiliateNumber) {
                 await processAffiliateCommission(affiliateNumber, investmentData, slotId);
             }
             
-            // Update slot appearance
-            const slot = document.querySelector(`[data-slot-id="${slotId}"]`);
-            updateSlotAppearance(slot, slotId);
-            
-            // Send email notification (simulated)
-            sendEmailNotification(investmentData, slotId);
-            
             closeModal();
-            updateDashboard();
-            showPaymentModal();
+            
+            // Show appropriate success message
+            if (firebaseSaveSuccess) {
+                console.log('🎉 Investment successfully saved to Firebase database');
+                alert('✅ Investment application submitted successfully!\n\nYour investment has been saved to our secure database and is now under review.\n\nNext: Complete your payment using the instructions that will appear.');
+            } else {
+                console.log('⚠️ Investment saved locally but not to Firebase');
+                alert('✅ Investment application submitted!\n\n⚠️ Note: Saved locally but connection to database is unstable. Your investment is secure and will sync when connection improves.\n\nNext: Complete your payment using the instructions that will appear.');
+            }
+            
+            // Show payment instructions based on selected payment mode
+            showPaymentInstructionsModal(paymentMode);
         }
 
         async function processAffiliateCommission(affiliateNumber, investmentData, slotId) {
@@ -1150,15 +1585,157 @@
             }
         }
 
-        function sendEmailNotification(investmentData, slotId) {
-            // In a real implementation, this would send an actual email
-            console.log('Email notification sent to phantomsalonga@gmail.com');
-            console.log('Investment Details:', { slotId, ...investmentData });
+        function showPaymentInstructionsModal(paymentMode) {
+            // Show pending review message first
+            alert('✅ Investment Application Submitted!\n\n' +
+                  '📋 Your application is now under review.\n\n' +
+                  '💳 Next Step: Complete your payment using the instructions that will appear next.\n\n' +
+                  '📸 After payment, take a screenshot and join our Telegram group to send proof of payment for verification.\n\n' +
+                  '⏳ Your investment slot will be approved once payment is verified.');
             
-            // Simulate email with alert (remove in production)
+            // Then show specific payment instructions
             setTimeout(() => {
-                alert(`Email notification sent to phantomsalonga@gmail.com for slot ${slotId}`);
+                showSpecificPaymentInstructions(paymentMode);
             }, 1000);
+        }
+
+        function showSpecificPaymentInstructions(paymentMode) {
+            const modal = document.getElementById('paymentModal');
+            const container = modal.querySelector('.form-container');
+            
+            let instructionsHTML = '';
+            
+            switch(paymentMode) {
+                case 'GCash':
+                    instructionsHTML = `
+                        <h3 class="text-2xl font-bold mb-6 text-center">📱 GCash Payment Instructions</h3>
+                        <div class="space-y-4">
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                                <h4 class="font-bold text-blue-800 mb-4 text-xl">💳 Send Payment via GCash</h4>
+                                <div class="text-center mb-4">
+                                    <div class="text-3xl font-bold text-blue-800 mb-2">09606555951</div>
+                                    <p class="text-blue-700">Send your investment amount to this GCash number</p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+                                <h4 class="font-bold text-red-800 mb-3">📸 IMPORTANT: After Payment</h4>
+                                <ol class="text-red-700 list-decimal list-inside space-y-2">
+                                    <li>Take a screenshot of your GCash payment confirmation</li>
+                                    <li>Join our Telegram group using the button below</li>
+                                    <li>Send your payment screenshot in the group</li>
+                                    <li>Wait for admin verification and approval</li>
+                                </ol>
+                                <a href="https://t.me/+d_wxE9CigKA3OTA1" target="_blank" rel="noopener noreferrer" 
+                                   class="inline-block bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors mt-4 w-full text-center">
+                                    📱 Join Telegram Group for Verification
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'Palawan Pay':
+                    instructionsHTML = `
+                        <h3 class="text-2xl font-bold mb-6 text-center">🏪 Palawan Pay Instructions</h3>
+                        <div class="space-y-4">
+                            <div class="bg-orange-50 border border-orange-200 rounded-lg p-6">
+                                <h4 class="font-bold text-orange-800 mb-4 text-xl">💳 Send Payment via Palawan Pay</h4>
+                                <div class="text-center mb-4">
+                                    <div class="text-3xl font-bold text-orange-800 mb-2">09606555951</div>
+                                    <p class="text-orange-700">Send your investment amount to this mobile number</p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+                                <h4 class="font-bold text-red-800 mb-3">📸 IMPORTANT: After Payment</h4>
+                                <ol class="text-red-700 list-decimal list-inside space-y-2">
+                                    <li>Take a photo of your Palawan Pay receipt</li>
+                                    <li>Join our Telegram group using the button below</li>
+                                    <li>Send your payment receipt in the group</li>
+                                    <li>Wait for admin verification and approval</li>
+                                </ol>
+                                <a href="https://t.me/+d_wxE9CigKA3OTA1" target="_blank" rel="noopener noreferrer" 
+                                   class="inline-block bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors mt-4 w-full text-center">
+                                    📱 Join Telegram Group for Verification
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'Bank Transfer':
+                    instructionsHTML = `
+                        <h3 class="text-2xl font-bold mb-6 text-center">🏦 Bank Transfer Instructions</h3>
+                        <div class="space-y-4">
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+                                <h4 class="font-bold text-green-800 mb-4 text-xl">💳 Bank Transfer Details</h4>
+                                <div class="space-y-2 text-green-700">
+                                    <p><strong>Bank:</strong> BPI</p>
+                                    <p><strong>Account Number:</strong> 6889023641</p>
+                                    <p><strong>Account Name:</strong> Ricardo Nacional III</p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+                                <h4 class="font-bold text-red-800 mb-3">📸 IMPORTANT: After Payment</h4>
+                                <ol class="text-red-700 list-decimal list-inside space-y-2">
+                                    <li>Take a screenshot of your bank transfer confirmation</li>
+                                    <li>Join our Telegram group using the button below</li>
+                                    <li>Send your transfer screenshot in the group</li>
+                                    <li>Wait for admin verification and approval</li>
+                                </ol>
+                                <a href="https://t.me/+d_wxE9CigKA3OTA1" target="_blank" rel="noopener noreferrer" 
+                                   class="inline-block bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors mt-4 w-full text-center">
+                                    📱 Join Telegram Group for Verification
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'PayPal':
+                    instructionsHTML = `
+                        <h3 class="text-2xl font-bold mb-6 text-center">💰 PayPal Payment Instructions</h3>
+                        <div class="space-y-4">
+                            <div class="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                                <h4 class="font-bold text-purple-800 mb-4 text-xl">💳 PayPal Payment Details</h4>
+                                <div class="space-y-2 text-purple-700">
+                                    <p><strong>PayPal Email:</strong> phantomsalonga@gmail.com</p>
+                                    <p><strong>Mobile:</strong> 09606555951</p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+                                <h4 class="font-bold text-red-800 mb-3">📸 IMPORTANT: After Payment</h4>
+                                <ol class="text-red-700 list-decimal list-inside space-y-2">
+                                    <li>Take a screenshot of your PayPal payment confirmation</li>
+                                    <li>Join our Telegram group using the button below</li>
+                                    <li>Send your payment screenshot in the group</li>
+                                    <li>Wait for admin verification and approval</li>
+                                </ol>
+                                <a href="https://t.me/+d_wxE9CigKA3OTA1" target="_blank" rel="noopener noreferrer" 
+                                   class="inline-block bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors mt-4 w-full text-center">
+                                    📱 Join Telegram Group for Verification
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                default:
+                    instructionsHTML = `
+                        <h3 class="text-2xl font-bold mb-6 text-center">💳 Payment Instructions</h3>
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+                            <p class="text-gray-700">Please contact admin for payment instructions.</p>
+                        </div>
+                    `;
+            }
+            
+            container.innerHTML = instructionsHTML + `
+                <div class="flex gap-3 pt-6">
+                    <button onclick="closePaymentModal()" class="flex-1 bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600 transition-colors">Close</button>
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
         }
 
         // ===== DASHBOARD UPDATES =====
@@ -1232,7 +1809,7 @@
                 document.getElementById('adminPassword').value = '';
                 showAdminTab('investments');
             } else {
-                alert('Invalid credentials! Default: ric3rd / nacs2512364');
+                alert('Invalid credentials!');
                 document.getElementById('adminUsername').value = '';
                 document.getElementById('adminPassword').value = '';
             }
@@ -1242,9 +1819,11 @@
             // Hide all tabs
             document.getElementById('adminInvestmentContent').classList.add('hidden');
             document.getElementById('adminAffiliateContent').classList.add('hidden');
+            document.getElementById('adminSettingsContent').classList.add('hidden');
             
             document.getElementById('adminInvestmentTab').className = 'px-4 py-2 font-semibold text-gray-500 hover:text-gray-700';
             document.getElementById('adminAffiliateTab').className = 'px-4 py-2 font-semibold text-gray-500 hover:text-gray-700';
+            document.getElementById('adminSettingsTab').className = 'px-4 py-2 font-semibold text-gray-500 hover:text-gray-700';
             
             // Show selected tab
             if (tabName === 'investments') {
@@ -1255,6 +1834,10 @@
                 document.getElementById('adminAffiliateContent').classList.remove('hidden');
                 document.getElementById('adminAffiliateTab').className = 'px-4 py-2 font-semibold border-b-2 border-blue-600 text-blue-600';
                 loadAdminAffiliates();
+            } else if (tabName === 'settings') {
+                document.getElementById('adminSettingsContent').classList.remove('hidden');
+                document.getElementById('adminSettingsTab').className = 'px-4 py-2 font-semibold border-b-2 border-blue-600 text-blue-600';
+                loadAdminSettings();
             }
         }
 
@@ -1283,7 +1866,7 @@
                                     <div class="flex-1">
                                         <div class="flex items-center gap-2 mb-2">
                                             <span class="font-semibold text-lg">${investment.fullName}</span>
-                                            <span class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">${slotId}</span>
+                                            <span class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded font-mono">${investment.slotNumber || generateSlotNumber(slotId)}</span>
                                             ${investment.affiliateNumber ? `<span class="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">Ref: ${investment.affiliateNumber}</span>` : ''}
                                         </div>
                                         <p class="text-sm text-gray-600">${investment.floorInfo} | Investment: ₱${parseInt(investment.investmentAmount).toLocaleString()}</p>
@@ -1311,14 +1894,30 @@
                                                     class="bg-orange-600 text-white px-3 py-2 rounded text-sm hover:bg-orange-700">Update</button>
                                         </div>
                                     </div>
-                                    <div class="flex flex-col justify-center">
+                                    <div class="flex flex-col justify-center space-y-2">
+                                        <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center mb-2">
+                                            <div class="text-blue-800 font-bold mb-2">🔐 PASSWORD MANAGEMENT</div>
+                                            <div class="text-xs text-blue-600 mb-2">Current Password: <strong>${investment.portfolioPassword}</strong></div>
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <input type="password" id="newPassword_${slotId}" placeholder="New password" 
+                                                       class="flex-1 p-2 border rounded text-sm" minlength="6">
+                                                <button onclick="resetInvestorPassword('${slotId}')" 
+                                                        class="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700">
+                                                    🔄 Reset
+                                                </button>
+                                            </div>
+                                        </div>
                                         <div class="bg-red-50 border-2 border-red-200 rounded-lg p-4 text-center">
                                             <div class="text-red-800 font-bold mb-2">⚠️ DANGER ZONE</div>
                                             <button onclick="confirmRevokeInvestment('${slotId}')" 
-                                                    class="bg-red-600 text-white px-4 py-3 rounded-lg text-sm hover:bg-red-700 font-bold w-full border-2 border-red-700 shadow-lg transform hover:scale-105 transition-all">
+                                                    class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700 font-bold w-full border-2 border-red-700 shadow-lg transform hover:scale-105 transition-all mb-2">
                                                 🚫 REVOKE INVESTMENT
                                             </button>
-                                            <div class="text-xs text-red-600 mt-1">This will make slot available again</div>
+                                            <button onclick="confirmDeleteInvestor('${slotId}')" 
+                                                    class="bg-red-800 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-900 font-bold w-full border-2 border-red-900 shadow-lg transform hover:scale-105 transition-all">
+                                                🗑️ DELETE INVESTOR
+                                            </button>
+                                            <div class="text-xs text-red-600 mt-1">Revoke = slot available | Delete = permanent removal</div>
                                         </div>
                                     </div>
                                 </div>
@@ -1351,7 +1950,7 @@
                                     <div class="flex-1">
                                         <div class="flex items-center gap-2 mb-2">
                                             <span class="font-semibold text-lg">${investment.fullName}</span>
-                                            <span class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">${slotId}</span>
+                                            <span class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded font-mono">${investment.slotNumber || generateSlotNumber(slotId)}</span>
                                             ${investment.affiliateNumber ? `<span class="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">Affiliate: ${investment.affiliateNumber}</span>` : ''}
                                         </div>
                                         <p class="text-sm text-gray-600">${investment.floorInfo} | Investment: ₱${parseInt(investment.investmentAmount).toLocaleString()}</p>
@@ -1522,6 +2121,10 @@
                                             class="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700 flex-1">
                                         📊 View Full Details
                                     </button>
+                                    <button onclick="confirmDeleteAffiliate('${email}')" 
+                                            class="bg-red-600 text-white px-3 py-2 rounded text-sm hover:bg-red-700 flex-1">
+                                        🗑️ Delete Affiliate
+                                    </button>
                                 </div>
                             </div>
                         `;
@@ -1596,6 +2199,55 @@
             alert(`✅ Dividend withdrawn amount updated!\n\nInvestor: ${investment.fullName}\nTotal Withdrawn: ₱${withdrawnAmount.toLocaleString()}\nAvailable Balance: ₱${((investment.dividendEarned || 0) - withdrawnAmount).toLocaleString()}`);
         }
 
+        async function resetInvestorPassword(slotId) {
+            const newPasswordInput = document.getElementById(`newPassword_${slotId}`);
+            if (!newPasswordInput) {
+                alert('Error: Password input field not found!');
+                return;
+            }
+            
+            const newPassword = newPasswordInput.value.trim();
+            const investment = investments[slotId];
+            
+            if (!investment) {
+                alert('Investment not found!');
+                return;
+            }
+            
+            if (!newPassword) {
+                alert('Please enter a new password!');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                alert('Password must be at least 6 characters long!');
+                return;
+            }
+            
+            const oldPassword = investment.portfolioPassword;
+            
+            // Update the password
+            investment.portfolioPassword = newPassword;
+            
+            // Save changes to Firebase
+            try {
+                await saveData('investments', investments);
+                updateConnectionStatus('online', 'Password updated successfully');
+            } catch (error) {
+                console.error('Failed to save password update to Firebase:', error);
+                updateConnectionStatus('offline', 'Password updated locally only');
+                alert('⚠️ Password updated but failed to save to Firebase. Changes may not persist.');
+            }
+            
+            // Clear the input field
+            newPasswordInput.value = '';
+            
+            // Reload the admin panel to show the new password
+            loadAdminInvestments();
+            
+            alert(`✅ Password Reset Successful!\n\nInvestor: ${investment.fullName}\nEmail: ${investment.email}\n\nOld Password: ${oldPassword}\nNew Password: ${newPassword}\n\nThe investor can now use the new password to access their portfolio.`);
+        }
+
         async function approveInvestment(slotId) {
             const investment = investments[slotId];
             investment.status = 'approved';
@@ -1619,20 +2271,53 @@
                         const affiliateEmail = Object.keys(affiliates).find(email => affiliates[email].affiliateNumber === investment.affiliateNumber);
                         if (affiliateEmail) {
                             affiliates[affiliateEmail] = affiliate;
-                            await saveData('affiliates', affiliates);
+                            
+                            // Save affiliate data to Firebase
+                            if (isFirebaseConfigured && db) {
+                                try {
+                                    await db.collection('affiliates').doc(affiliateEmail).set(affiliate, { merge: true });
+                                    console.log('✅ Affiliate data saved to Firebase:', affiliateEmail);
+                                } catch (error) {
+                                    console.error('❌ Failed to save affiliate to Firebase:', error);
+                                }
+                            }
                         }
                     }
                 }
             }
             
-            await saveData('investments', investments);
+            // Save investment to Firebase
+            let firebaseSaveSuccess = false;
+            
+            if (isFirebaseConfigured && db) {
+                updateConnectionStatus('loading', 'Saving approved investment to Firebase...');
+                
+                try {
+                    // Direct document save (this will create the collection if it doesn't exist)
+                    await db.collection('investments').doc(slotId).set(investment);
+                    firebaseSaveSuccess = true;
+                    updateConnectionStatus('online', 'Investment approved and saved to Firebase');
+                    console.log('✅ Approved investment saved to Firebase:', slotId);
+                } catch (error) {
+                    console.error('❌ Firebase save failed for approval:', error);
+                    updateConnectionStatus('offline', 'Approval saved locally only');
+                }
+            } else {
+                console.log('⚠️ Firebase not configured, approval saved locally only');
+                updateConnectionStatus('offline', 'Firebase not available');
+            }
             
             const slot = document.querySelector(`[data-slot-id="${slotId}"]`);
             updateSlotAppearance(slot, slotId);
             
             loadAdminInvestments();
             updateDashboard();
-            alert('Investment approved successfully! Affiliate commission processed.');
+            
+            if (firebaseSaveSuccess) {
+                alert('✅ Investment approved successfully and saved to Firebase! Affiliate commission processed.');
+            } else {
+                alert('⚠️ Investment approved locally but failed to save to Firebase. Please check your internet connection.');
+            }
         }
 
         async function disapproveInvestment(slotId) {
@@ -1653,21 +2338,66 @@
                         const affiliateEmail = Object.keys(affiliates).find(email => affiliates[email].affiliateNumber === investment.affiliateNumber);
                         if (affiliateEmail) {
                             affiliates[affiliateEmail] = affiliate;
-                            await saveData('affiliates', affiliates);
+                            
+                            // Save affiliate data to Firebase
+                            if (isFirebaseConfigured && db) {
+                                try {
+                                    await db.collection('affiliates').doc(affiliateEmail).set(affiliate, { merge: true });
+                                    console.log('✅ Affiliate data updated in Firebase after disapproval:', affiliateEmail);
+                                } catch (error) {
+                                    console.error('❌ Failed to update affiliate in Firebase:', error);
+                                }
+                            }
                         }
                     }
                 }
             }
             
+            // Remove investment from local storage
             delete investments[slotId];
-            await saveData('investments', investments);
+            
+            // Remove from Firebase
+            let firebaseDeleteSuccess = false;
+            
+            if (isFirebaseConfigured && db) {
+                updateConnectionStatus('loading', 'Removing investment from Firebase...');
+                
+                try {
+                    // Check if document exists before trying to delete
+                    const docRef = db.collection('investments').doc(slotId);
+                    const doc = await docRef.get();
+                    
+                    if (doc.exists) {
+                        await docRef.delete();
+                        firebaseDeleteSuccess = true;
+                        updateConnectionStatus('online', 'Investment removed from Firebase');
+                        console.log('✅ Investment removed from Firebase:', slotId);
+                    } else {
+                        // Document doesn't exist in Firebase, but that's okay
+                        firebaseDeleteSuccess = true;
+                        updateConnectionStatus('online', 'Investment not found in Firebase (already removed)');
+                        console.log('ℹ️ Investment not found in Firebase:', slotId);
+                    }
+                } catch (error) {
+                    console.error('❌ Failed to remove investment from Firebase:', error);
+                    updateConnectionStatus('offline', 'Removal saved locally only');
+                }
+            } else {
+                console.log('⚠️ Firebase not configured, removal saved locally only');
+                updateConnectionStatus('offline', 'Firebase not available');
+            }
             
             const slot = document.querySelector(`[data-slot-id="${slotId}"]`);
             updateSlotAppearance(slot, slotId);
             
             loadAdminInvestments();
             updateDashboard();
-            alert('Investment disapproved and removed.');
+            
+            if (firebaseDeleteSuccess) {
+                alert('✅ Investment disapproved and removed from Firebase database.');
+            } else {
+                alert('⚠️ Investment disapproved locally but failed to remove from Firebase. Please check your internet connection.');
+            }
         }
 
         function confirmRevokeInvestment(slotId) {
@@ -1911,6 +2641,7 @@
             document.getElementById('portfolioLogin').classList.remove('hidden');
             document.getElementById('portfolioContent').classList.add('hidden');
             document.getElementById('portfolioEmail').value = '';
+            document.getElementById('portfolioPasswordLogin').value = '';
         }
 
         function closePortfolioModal() {
@@ -1921,8 +2652,10 @@
 
         function loadPortfolio() {
             const email = document.getElementById('portfolioEmail').value.trim();
-            if (!email) {
-                alert('Please enter your email address');
+            const password = document.getElementById('portfolioPasswordLogin').value.trim();
+            
+            if (!email || !password) {
+                alert('Please enter both your email address and portfolio password');
                 return;
             }
             
@@ -1933,6 +2666,16 @@
             
             if (userInvestments.length === 0) {
                 alert('No approved investments found for this email address');
+                return;
+            }
+            
+            // Verify password with any of the user's investments
+            const passwordMatch = userInvestments.some(([_, investment]) => 
+                investment.portfolioPassword === password
+            );
+            
+            if (!passwordMatch) {
+                alert('Incorrect portfolio password. Please check your password and try again.');
                 return;
             }
             
@@ -1956,14 +2699,14 @@
             // Load investment details
             const container = document.getElementById('portfolioInvestments');
             container.innerHTML = `
-                <h4 class="text-lg font-bold mb-4">📋 Your Investment Slots</h4>
+                <h4 class="text-lg font-bold mb-4">📋 Your Investment Units</h4>
                 <div class="space-y-4">
                     ${userInvestments.map(([slotId, investment]) => `
                         <div class="bg-white border rounded-lg p-4">
                             <div class="flex justify-between items-start mb-3">
                                 <div class="flex-1">
                                     <div class="flex items-center gap-2 mb-2">
-                                        <span class="font-semibold text-lg">${slotId}</span>
+                                        <span class="font-semibold text-lg font-mono">${investment.slotNumber || generateSlotNumber(slotId)}</span>
                                         <span class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">${investment.floorInfo}</span>
                                     </div>
                                     <p class="text-sm text-gray-600">Investment: ₱${parseInt(investment.investmentAmount).toLocaleString()}</p>
@@ -1982,6 +2725,257 @@
             // Show portfolio content
             document.getElementById('portfolioLogin').classList.add('hidden');
             document.getElementById('portfolioContent').classList.remove('hidden');
+        }
+
+        // ===== BUDGET RECOMMENDATION FUNCTIONS =====
+        let selectedBudget = 0;
+        let recommendedSlots = [];
+
+        function showBudgetRecommendation() {
+            const modal = document.getElementById('budgetModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Reset state
+            selectedBudget = 0;
+            recommendedSlots = [];
+            document.getElementById('budgetRecommendation').classList.add('hidden');
+            document.getElementById('investNowBtn').classList.add('hidden');
+            document.getElementById('customBudget').value = '';
+            
+            // Reset budget button styles
+            document.querySelectorAll('.budget-btn').forEach(btn => {
+                btn.className = 'budget-btn bg-gray-100 hover:bg-purple-100 border-2 border-gray-300 hover:border-purple-500 p-3 rounded-lg text-center transition-all';
+            });
+        }
+
+        function closeBudgetModal() {
+            const modal = document.getElementById('budgetModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function setBudget(budget) {
+            selectedBudget = parseInt(budget);
+            
+            if (selectedBudget < 500) {
+                alert('Minimum investment amount is ₱500');
+                return;
+            }
+            
+            // Update custom input if budget was set via button
+            if (document.getElementById('customBudget').value != budget) {
+                document.getElementById('customBudget').value = budget;
+            }
+            
+            // Update button styles
+            document.querySelectorAll('.budget-btn').forEach(btn => {
+                btn.className = 'budget-btn bg-gray-100 hover:bg-purple-100 border-2 border-gray-300 hover:border-purple-500 p-3 rounded-lg text-center transition-all';
+            });
+            
+            // Highlight selected budget button
+            const selectedBtn = document.querySelector(`button[onclick="setBudget(${budget})"]`);
+            if (selectedBtn) {
+                selectedBtn.className = 'budget-btn bg-purple-200 border-2 border-purple-600 p-3 rounded-lg text-center transition-all';
+            }
+            
+            generateRecommendation(selectedBudget);
+        }
+
+        function generateRecommendation(budget) {
+            // Find matching floor configurations
+            const matchingFloors = [];
+            const availableSlots = [];
+            
+            Object.entries(floorConfig).forEach(([floorId, config]) => {
+                if (config.price <= budget) {
+                    matchingFloors.push({
+                        floorId,
+                        ...config,
+                        availableCount: 0
+                    });
+                }
+            });
+            
+            // Sort by price (highest first for best value)
+            matchingFloors.sort((a, b) => b.price - a.price);
+            
+            // Count available slots for each matching floor
+            matchingFloors.forEach(floor => {
+                for (let i = 1; i <= floor.slots; i++) {
+                    const slotKey = `${floor.floorId}_${i}`;
+                    if (!investments[slotKey]) {
+                        floor.availableCount++;
+                        availableSlots.push({
+                            slotId: slotKey,
+                            floorId: floor.floorId,
+                            floorName: floor.name,
+                            price: floor.price,
+                            icon: floor.icon
+                        });
+                    }
+                }
+            });
+            
+            displayRecommendation(budget, matchingFloors, availableSlots);
+        }
+
+        function displayRecommendation(budget, matchingFloors, availableSlots) {
+            const container = document.getElementById('budgetRecommendation');
+            
+            if (matchingFloors.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+                        <div class="text-red-800 text-xl font-bold mb-2">❌ No Investment Options Found</div>
+                        <p class="text-red-700">Your budget of ₱${budget.toLocaleString()} is below our minimum investment of ₱500.</p>
+                        <p class="text-red-600 text-sm mt-2">Please increase your budget to at least ₱500 to see available options.</p>
+                    </div>
+                `;
+                container.classList.remove('hidden');
+                return;
+            }
+            
+            const bestOption = matchingFloors[0];
+            const totalAvailable = availableSlots.filter(slot => slot.price <= budget).length;
+            
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+                        <div class="text-center mb-4">
+                            <div class="text-green-800 text-2xl font-bold mb-2">🎯 Perfect Match Found!</div>
+                            <p class="text-green-700">Based on your budget of <strong>₱${budget.toLocaleString()}</strong>, here are your investment options:</p>
+                        </div>
+                        
+                        <div class="bg-white rounded-lg p-4 border-2 border-green-300 mb-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-3xl">${bestOption.icon}</span>
+                                    <div>
+                                        <div class="text-xl font-bold text-green-800">RECOMMENDED: ${bestOption.name} Floor</div>
+                                        <div class="text-green-600">Best value for your budget!</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold text-green-800">₱${bestOption.price.toLocaleString()}</div>
+                                    <div class="text-sm text-green-600">${bestOption.availableCount} units available</div>
+                                </div>
+                            </div>
+                            
+                            <div class="grid md:grid-cols-2 gap-4 mt-4 p-4 bg-green-50 rounded">
+                                <div>
+                                    <h5 class="font-bold text-green-800 mb-2">💰 Investment Benefits:</h5>
+                                    <ul class="text-sm text-green-700 space-y-1">
+                                        <li>• Monthly dividend payments</li>
+                                        <li>• Real property investment</li>
+                                        <li>• Transparent profit sharing</li>
+                                        <li>• Long-term passive income</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h5 class="font-bold text-green-800 mb-2">📊 Your Investment:</h5>
+                                    <ul class="text-sm text-green-700 space-y-1">
+                                        <li>• Investment: ₱${bestOption.price.toLocaleString()}</li>
+                                        <li>• Remaining budget: ₱${(budget - bestOption.price).toLocaleString()}</li>
+                                        <li>• Floor level: ${bestOption.name}</li>
+                                        <li>• Available units: ${bestOption.availableCount}</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${matchingFloors.length > 1 ? `
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                            <h4 class="text-lg font-bold text-blue-800 mb-4">🏢 Other Options Within Your Budget:</h4>
+                            <div class="grid gap-3">
+                                ${matchingFloors.slice(1).map(floor => `
+                                    <div class="bg-white rounded-lg p-4 border border-blue-200 flex justify-between items-center">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-2xl">${floor.icon}</span>
+                                            <div>
+                                                <div class="font-bold text-blue-800">${floor.name} Floor</div>
+                                                <div class="text-sm text-blue-600">${floor.availableCount} units available</div>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-lg font-bold text-blue-800">₱${floor.price.toLocaleString()}</div>
+                                            <div class="text-xs text-blue-600">Saves ₱${(bestOption.price - floor.price).toLocaleString()}</div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-yellow-600">💡</span>
+                            <span class="font-bold text-yellow-800">Investment Tip:</span>
+                        </div>
+                        <p class="text-yellow-700 text-sm">
+                            ${budget >= 50000 ? 
+                                'Excellent! You can afford our premium Penthouse units with the highest dividend potential.' :
+                                budget >= 20000 ?
+                                'Great budget! Consider the higher floors for better dividend returns.' :
+                                budget >= 5000 ?
+                                'Good starting budget! You can access multiple floor options.' :
+                                'Perfect for getting started! You can always upgrade to higher floors later.'
+                            }
+                        </p>
+                    </div>
+                    
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+                        <div class="text-gray-700 mb-2">
+                            <strong>Total Available Units in Your Budget:</strong> ${totalAvailable}
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            Click "Invest Now" to proceed with the <strong>${bestOption.name} Floor</strong> investment
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.classList.remove('hidden');
+            document.getElementById('investNowBtn').classList.remove('hidden');
+            
+            // Store recommended slots for investment
+            recommendedSlots = availableSlots.filter(slot => slot.price === bestOption.price);
+        }
+
+        function proceedToInvestment() {
+            if (recommendedSlots.length === 0) {
+                alert('No available units found for your budget. Please try a different amount.');
+                return;
+            }
+            
+            // Close budget modal
+            closeBudgetModal();
+            
+            // Find the first available slot of the recommended type
+            const recommendedSlot = recommendedSlots[0];
+            const slotElement = document.querySelector(`[data-slot-id="${recommendedSlot.slotId}"]`);
+            
+            if (slotElement) {
+                // Scroll to the slot
+                slotElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Highlight the slot temporarily
+                const originalClass = slotElement.className;
+                slotElement.className = originalClass + ' ring-4 ring-purple-500 ring-opacity-75';
+                
+                setTimeout(() => {
+                    slotElement.className = originalClass;
+                    // Open investment form for this slot
+                    handleSlotClick(recommendedSlot.slotId, slotElement);
+                }, 1500);
+                
+                // Show success message
+                setTimeout(() => {
+                    alert(`🎯 Perfect! We've found you a ${recommendedSlot.floorName} Floor unit.\n\nUnit: ${recommendedSlot.slotId}\nInvestment: ₱${recommendedSlot.price.toLocaleString()}\n\nThe investment form will open shortly!`);
+                }, 500);
+            } else {
+                alert('Unit not found. Please try selecting a unit manually from the building.');
+            }
         }
 
         // ===== AFFILIATE FUNCTIONS =====
@@ -2039,10 +3033,34 @@
                 withdrawalHistory: []
             };
             
+            // Add to local storage
             affiliates[email] = affiliateData;
-            await saveData('affiliates', affiliates);
             
-            alert(`🎉 Affiliate registration successful!\n\nYour Affiliate Number: ${affiliateData.affiliateNumber}\n\nSave this number - you'll need it to:\n• Access your affiliate dashboard\n• Earn 5% commission on referrals\n\nShare this number with people you refer!`);
+            // Save to Firebase
+            let firebaseSaveSuccess = false;
+            
+            if (isFirebaseConfigured && db) {
+                updateConnectionStatus('loading', 'Saving affiliate to Firebase...');
+                
+                try {
+                    await db.collection('affiliates').doc(email).set(affiliateData, { merge: true });
+                    firebaseSaveSuccess = true;
+                    updateConnectionStatus('online', 'Affiliate saved to Firebase');
+                    console.log('✅ Affiliate saved to Firebase:', email);
+                } catch (error) {
+                    console.error('❌ Failed to save affiliate to Firebase:', error);
+                    updateConnectionStatus('offline', 'Affiliate saved locally only');
+                }
+            } else {
+                console.log('⚠️ Firebase not configured, affiliate saved locally only');
+                updateConnectionStatus('offline', 'Firebase not available');
+            }
+            
+            if (firebaseSaveSuccess) {
+                alert(`🎉 Affiliate registration successful and saved to Firebase!\n\nYour Affiliate Number: ${affiliateData.affiliateNumber}\n\nSave this number - you'll need it to:\n• Access your affiliate dashboard\n• Earn 5% commission on referrals\n\nShare this number with people you refer!`);
+            } else {
+                alert(`🎉 Affiliate registration successful (saved locally)!\n\nYour Affiliate Number: ${affiliateData.affiliateNumber}\n\n⚠️ Note: Failed to save to Firebase database. Please check your internet connection.\n\nSave this number - you'll need it to:\n• Access your affiliate dashboard\n• Earn 5% commission on referrals\n\nShare this number with people you refer!`);
+            }
             
             closeAffiliateModal();
         });
@@ -2133,6 +3151,324 @@
             document.execCommand('copy');
             alert('Affiliate number copied to clipboard!');
         }
+
+        // ===== ADMIN SETTINGS FUNCTIONS =====
+        function loadAdminSettings() {
+            const container = document.getElementById('adminSettingsContent');
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                        <h4 class="text-xl font-bold text-blue-800 mb-4">🔐 Change Admin Credentials</h4>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">New Username</label>
+                                <input type="text" id="newAdminUsername" placeholder="Enter new username" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">New Password</label>
+                                <input type="password" id="newAdminPassword" placeholder="Enter new password" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium mb-2">Confirm Current Password</label>
+                            <input type="password" id="confirmCurrentPassword" placeholder="Enter current password to confirm" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <button onclick="changeAdminCredentials()" class="mt-4 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-semibold">
+                            🔄 Update Credentials
+                        </button>
+                        <div class="mt-3 text-sm text-blue-600">
+                            Current Username: <strong>${adminCredentials.username}</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                        <h4 class="text-xl font-bold text-yellow-800 mb-4">📊 System Statistics</h4>
+                        <div class="grid md:grid-cols-4 gap-4">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-green-600">${Object.keys(investments).length}</div>
+                                <div class="text-sm text-gray-600">Total Investments</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-blue-600">${Object.keys(affiliates).length}</div>
+                                <div class="text-sm text-gray-600">Total Affiliates</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-purple-600">₱${Object.values(investments).reduce((sum, inv) => sum + (inv.status === 'approved' ? parseInt(inv.investmentAmount) : 0), 0).toLocaleString()}</div>
+                                <div class="text-sm text-gray-600">Total Raised</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-orange-600">₱${Object.values(affiliates).reduce((sum, aff) => sum + (aff.totalCommissions || 0), 0).toLocaleString()}</div>
+                                <div class="text-sm text-gray-600">Total Commissions</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+                        <h4 class="text-xl font-bold text-red-800 mb-4">⚠️ Danger Zone</h4>
+                        <p class="text-red-700 mb-4">These actions are permanent and cannot be undone!</p>
+                        <div class="space-y-3">
+                            <button onclick="confirmClearAllData()" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 font-semibold w-full">
+                                🗑️ Clear All Investment Data
+                            </button>
+                            <button onclick="confirmClearAllAffiliates()" class="bg-red-700 text-white px-6 py-3 rounded-lg hover:bg-red-800 font-semibold w-full">
+                                🗑️ Clear All Affiliate Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function changeAdminCredentials() {
+            const newUsername = document.getElementById('newAdminUsername').value.trim();
+            const newPassword = document.getElementById('newAdminPassword').value.trim();
+            const currentPassword = document.getElementById('confirmCurrentPassword').value.trim();
+            
+            if (!newUsername || !newPassword || !currentPassword) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            if (currentPassword !== adminCredentials.password) {
+                alert('Current password is incorrect!');
+                return;
+            }
+            
+            if (newUsername.length < 3) {
+                alert('Username must be at least 3 characters long');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                alert('Password must be at least 6 characters long');
+                return;
+            }
+            
+            // Update credentials
+            adminCredentials.username = newUsername;
+            adminCredentials.password = newPassword;
+            
+            // Save to Firebase
+            try {
+                await saveToFirebase('admin', 'credentials', adminCredentials);
+                alert(`✅ Admin credentials updated successfully!\n\nNew Username: ${newUsername}\nNew Password: ${newPassword}\n\nPlease remember your new credentials!`);
+            } catch (error) {
+                console.error('Failed to save admin credentials:', error);
+                alert('⚠️ Credentials updated locally but failed to save to Firebase. Changes may not persist after refresh.');
+            }
+            
+            // Clear the form
+            document.getElementById('newAdminUsername').value = '';
+            document.getElementById('newAdminPassword').value = '';
+            document.getElementById('confirmCurrentPassword').value = '';
+            
+            // Refresh the settings page to show new username
+            loadAdminSettings();
+        }
+
+        function confirmDeleteInvestor(slotId) {
+            const investment = investments[slotId];
+            if (!investment) {
+                alert('Investment not found!');
+                return;
+            }
+            
+            const confirmMessage = `⚠️ CONFIRM DELETE INVESTOR ⚠️\n\n` +
+                `Investor: ${investment.fullName}\n` +
+                `Email: ${investment.email}\n` +
+                `Slot: ${slotId}\n` +
+                `Investment Amount: ₱${parseInt(investment.investmentAmount).toLocaleString()}\n\n` +
+                `This action will:\n` +
+                `• PERMANENTLY delete all investor data\n` +
+                `• Remove the slot completely (no green slot)\n` +
+                `• Cannot be undone\n\n` +
+                `Type "DELETE" to confirm:`;
+            
+            const userInput = prompt(confirmMessage);
+            
+            if (userInput === 'DELETE') {
+                deleteInvestor(slotId);
+            } else {
+                alert('Delete cancelled. Investor data remains unchanged.');
+            }
+        }
+
+        async function deleteInvestor(slotId) {
+            const investment = investments[slotId];
+            
+            if (!investment) {
+                alert('Investment not found!');
+                return;
+            }
+            
+            // Handle affiliate commission reversal if applicable
+            if (investment.affiliateNumber) {
+                let affiliateEmail = null;
+                let affiliate = null;
+                
+                for (const [email, affData] of Object.entries(affiliates)) {
+                    if (affData.affiliateNumber === investment.affiliateNumber) {
+                        affiliateEmail = email;
+                        affiliate = affData;
+                        break;
+                    }
+                }
+                
+                if (affiliate && affiliateEmail) {
+                    if (affiliate.referrals) {
+                        const referralIndex = affiliate.referrals.findIndex(ref => ref.slotId === slotId);
+                        if (referralIndex !== -1) {
+                            const referral = affiliate.referrals[referralIndex];
+                            affiliate.totalCommissions = Math.max(0, (affiliate.totalCommissions || 0) - referral.commission);
+                            affiliate.totalReferrals = Math.max(0, (affiliate.totalReferrals || 0) - 1);
+                            affiliate.referrals.splice(referralIndex, 1);
+                        }
+                    }
+                    
+                    affiliates[affiliateEmail] = affiliate;
+                    await saveData('affiliates', affiliates);
+                }
+            }
+            
+            // Remove the investment completely
+            delete investments[slotId];
+            await saveData('investments', investments);
+            
+            // Find and remove the slot element completely
+            const slot = document.querySelector(`[data-slot-id="${slotId}"]`);
+            if (slot) {
+                slot.remove();
+            }
+            
+            // Close photo modal if open for this slot
+            if (currentPhotoSlot === slotId) {
+                closePhotoModal();
+            }
+            
+            // Refresh displays
+            setTimeout(() => {
+                updateDashboard();
+                if (isAdminLoggedIn) {
+                    loadAdminInvestments();
+                    loadAdminAffiliates();
+                }
+            }, 100);
+            
+            alert(`✅ Investor deleted permanently!\n\nAll data for ${investment.fullName} has been removed from the system.`);
+        }
+
+        function confirmDeleteAffiliate(email) {
+            const affiliate = affiliates[email];
+            if (!affiliate) {
+                alert('Affiliate not found!');
+                return;
+            }
+            
+            const confirmMessage = `⚠️ CONFIRM DELETE AFFILIATE ⚠️\n\n` +
+                `Affiliate: ${affiliate.name}\n` +
+                `Email: ${email}\n` +
+                `Affiliate Number: ${affiliate.affiliateNumber}\n` +
+                `Total Commissions: ₱${(affiliate.totalCommissions || 0).toLocaleString()}\n` +
+                `Total Referrals: ${affiliate.totalReferrals || 0}\n\n` +
+                `This action will:\n` +
+                `• PERMANENTLY delete all affiliate data\n` +
+                `• Remove all referral history\n` +
+                `• Cannot be undone\n\n` +
+                `Type "DELETE" to confirm:`;
+            
+            const userInput = prompt(confirmMessage);
+            
+            if (userInput === 'DELETE') {
+                deleteAffiliate(email);
+            } else {
+                alert('Delete cancelled. Affiliate data remains unchanged.');
+            }
+        }
+
+        async function deleteAffiliate(email) {
+            const affiliate = affiliates[email];
+            
+            if (!affiliate) {
+                alert('Affiliate not found!');
+                return;
+            }
+            
+            // Remove affiliate data
+            delete affiliates[email];
+            await saveData('affiliates', affiliates);
+            
+            // Refresh displays
+            setTimeout(() => {
+                if (isAdminLoggedIn) {
+                    loadAdminAffiliates();
+                }
+            }, 100);
+            
+            alert(`✅ Affiliate deleted permanently!\n\nAll data for ${affiliate.name} has been removed from the system.`);
+        }
+
+        function confirmClearAllData() {
+            const confirmMessage = `⚠️ CONFIRM CLEAR ALL INVESTMENT DATA ⚠️\n\n` +
+                `This will permanently delete:\n` +
+                `• All ${Object.keys(investments).length} investments\n` +
+                `• All investor information\n` +
+                `• All dividend records\n` +
+                `• Reset all slots to available\n\n` +
+                `This action CANNOT be undone!\n\n` +
+                `Type "CLEAR ALL INVESTMENTS" to confirm:`;
+            
+            const userInput = prompt(confirmMessage);
+            
+            if (userInput === 'CLEAR ALL INVESTMENTS') {
+                clearAllInvestmentData();
+            } else {
+                alert('Clear cancelled. All data remains unchanged.');
+            }
+        }
+
+        async function clearAllInvestmentData() {
+            investments = {};
+            await saveData('investments', investments);
+            
+            // Reset all slots to available
+            initializeBuilding();
+            updateDashboard();
+            
+            if (isAdminLoggedIn) {
+                loadAdminInvestments();
+            }
+            
+            alert('✅ All investment data cleared successfully!\nAll slots are now available.');
+        }
+
+        function confirmClearAllAffiliates() {
+            const confirmMessage = `⚠️ CONFIRM CLEAR ALL AFFILIATE DATA ⚠️\n\n` +
+                `This will permanently delete:\n` +
+                `• All ${Object.keys(affiliates).length} affiliates\n` +
+                `• All referral records\n` +
+                `• All commission history\n\n` +
+                `This action CANNOT be undone!\n\n` +
+                `Type "CLEAR ALL AFFILIATES" to confirm:`;
+            
+            const userInput = prompt(confirmMessage);
+            
+            if (userInput === 'CLEAR ALL AFFILIATES') {
+                clearAllAffiliateData();
+            } else {
+                alert('Clear cancelled. All data remains unchanged.');
+            }
+        }
+
+        async function clearAllAffiliateData() {
+            affiliates = {};
+            await saveData('affiliates', affiliates);
+            
+            if (isAdminLoggedIn) {
+                loadAdminAffiliates();
+            }
+            
+            alert('✅ All affiliate data cleared successfully!');
+        }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'986110ec062dddfb',t:'MTc1OTAzOTcwNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98611df6250e2416',t:'MTc1OTA0MDIzOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
