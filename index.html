@@ -2485,7 +2485,13 @@
                 approvedSection.innerHTML = `
                     <h4 class="font-bold text-green-800 mb-4">✅ Approved Investments Management</h4>
                     <div class="space-y-3">
-                        ${approvedInvestments.map(([slotId, investment]) => `
+                        ${approvedInvestments.map(([slotId, investment]) => {
+                            const approvedDate = new Date(investment.approvedDate || investment.timestamp);
+                            const daysSinceApproval = Math.floor((new Date() - approvedDate) / (1000 * 60 * 60 * 24));
+                            const remainingDays = Math.max(0, 720 - daysSinceApproval);
+                            const isEligibleForCapitalWithdrawal = daysSinceApproval >= 720;
+                            
+                            return `
                             <div class="bg-white p-4 rounded border">
                                 <div class="flex justify-between items-start mb-3">
                                     <div class="flex-1">
@@ -2493,14 +2499,23 @@
                                             <span class="font-semibold text-lg">${investment.fullName}</span>
                                             <span class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded font-mono">${investment.slotNumber || generateSlotNumber(slotId)}</span>
                                             ${investment.affiliateNumber ? `<span class="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">Ref: ${investment.affiliateNumber}</span>` : ''}
+                                            <span class="text-xs ${isEligibleForCapitalWithdrawal ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} px-2 py-1 rounded">
+                                                ${isEligibleForCapitalWithdrawal ? '✅ Capital Eligible' : `🔒 ${remainingDays}d left`}
+                                            </span>
                                         </div>
                                         <p class="text-sm text-gray-600">${investment.floorInfo} | Investment: ₱${parseInt(investment.investmentAmount).toLocaleString()}</p>
                                         <p class="text-sm text-gray-600">Email: ${investment.email} | Mobile: ${investment.mobile}</p>
                                         <p class="text-sm text-gray-600">Dividend Method: ${investment.dividendMode} | Account: ${investment.accountDetails}</p>
-                                        <p class="text-xs text-gray-400">Approved: ${new Date(investment.timestamp).toLocaleDateString()}</p>
+                                        <p class="text-xs text-gray-400">Approved: ${approvedDate.toLocaleDateString()} (${daysSinceApproval} days ago)</p>
+                                        <div class="mt-2 flex gap-2">
+                                            <button onclick="showInvestmentHistory('${slotId}')" class="text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
+                                                📊 View History
+                                            </button>
+                                        </div>
                                     </div>
                                     ${investment.photo ? `<img src="${investment.photo}" alt="Photo" class="w-16 h-16 object-cover rounded ml-4">` : ''}
-                                </div>
+                                </div>`;
+                        }).join('')}
                                 
                                 <div class="grid md:grid-cols-2 gap-4 mt-4 pt-4 border-t">
                                     <div class="space-y-3">
@@ -3070,6 +3085,7 @@
             const investment = investments[slotId];
             investment.status = 'approved';
             investment.dividendEarned = 0; // Initialize dividend earned
+            investment.approvedDate = new Date().toISOString(); // Add approval date for holding period calculation
             
             // Process affiliate commission if applicable
             if (investment.affiliateNumber) {
@@ -3739,22 +3755,73 @@
                 
                 <h4 class="text-lg font-bold mb-4">📋 Your Investment Units</h4>
                 <div class="space-y-4">
-                    ${userInvestments.map(([slotId, investment]) => `
+                    ${userInvestments.map(([slotId, investment]) => {
+                        const approvedDate = new Date(investment.approvedDate || investment.timestamp);
+                        const daysSinceApproval = Math.floor((new Date() - approvedDate) / (1000 * 60 * 60 * 24));
+                        const remainingDays = Math.max(0, 720 - daysSinceApproval);
+                        const isEligibleForCapitalWithdrawal = daysSinceApproval >= 720;
+                        
+                        return `
                         <div class="bg-white border rounded-lg p-4">
                             <div class="flex justify-between items-start mb-3">
                                 <div class="flex-1">
                                     <div class="flex items-center gap-2 mb-2">
                                         <span class="font-semibold text-lg font-mono">${investment.slotNumber || generateSlotNumber(slotId)}</span>
                                         <span class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">${investment.floorInfo}</span>
+                                        ${isEligibleForCapitalWithdrawal ? 
+                                            '<span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">✅ Capital Withdrawal Available</span>' :
+                                            `<span class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">🔒 ${remainingDays} days left</span>`
+                                        }
                                     </div>
                                     <p class="text-sm text-gray-600">Investment: ₱${parseInt(investment.investmentAmount).toLocaleString()}</p>
                                     <p class="text-sm text-gray-600">Dividend Earned: ₱${(investment.dividendEarned || 0).toLocaleString()}</p>
                                     <p class="text-sm text-gray-600">Dividend Withdrawn: ₱${(investment.dividendWithdrawn || 0).toLocaleString()}</p>
                                     <p class="text-sm text-green-600 font-semibold">Available Balance: ₱${((investment.dividendEarned || 0) - (investment.dividendWithdrawn || 0)).toLocaleString()}</p>
-                                    <p class="text-xs text-gray-400">Invested: ${new Date(investment.timestamp).toLocaleDateString()}</p>
+                                    <p class="text-xs text-gray-400">Approved: ${approvedDate.toLocaleDateString()} (${daysSinceApproval} days ago)</p>
+                                    ${!isEligibleForCapitalWithdrawal ? 
+                                        `<div class="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
+                                            <div class="text-yellow-800 font-semibold">🔒 Holding Period: ${remainingDays} days remaining</div>
+                                            <div class="text-yellow-700">Capital withdrawal available after 720 days (${new Date(approvedDate.getTime() + 720 * 24 * 60 * 60 * 1000).toLocaleDateString()})</div>
+                                        </div>` : 
+                                        `<div class="mt-2 p-2 bg-green-50 border border-green-200 rounded text-xs">
+                                            <div class="text-green-800 font-semibold">✅ Capital withdrawal is now available for this unit</div>
+                                        </div>`
+                                    }
                                 </div>
                                 ${investment.photo ? `<img src="${investment.photo}" alt="Your Photo" class="w-16 h-16 object-cover rounded ml-4">` : ''}
                             </div>
+                            
+                            ${(investment.dividendTransactions && investment.dividendTransactions.length > 0) || (investment.withdrawalTransactions && investment.withdrawalTransactions.length > 0) ? `
+                                <div class="mt-4 pt-4 border-t">
+                                    <h5 class="font-semibold text-gray-700 mb-3">📊 Transaction History</h5>
+                                    <div class="space-y-2 max-h-40 overflow-y-auto">
+                                        ${(investment.dividendTransactions || []).map(tx => `
+                                            <div class="bg-green-50 border border-green-200 rounded p-2 text-sm">
+                                                <div class="flex justify-between items-center">
+                                                    <span class="text-green-800 font-medium">💰 Dividend Payment</span>
+                                                    <span class="text-green-600 font-bold">+₱${tx.amount.toLocaleString()}</span>
+                                                </div>
+                                                <div class="text-xs text-green-600 mt-1">
+                                                    ${new Date(tx.date).toLocaleDateString()} • ${tx.description}
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                        ${(investment.withdrawalTransactions || []).map(tx => `
+                                            <div class="bg-orange-50 border border-orange-200 rounded p-2 text-sm">
+                                                <div class="flex justify-between items-center">
+                                                    <span class="text-orange-800 font-medium">💸 Withdrawal</span>
+                                                    <span class="text-orange-600 font-bold">-₱${tx.amount.toLocaleString()}</span>
+                                                </div>
+                                                <div class="text-xs text-orange-600 mt-1">
+                                                    ${new Date(tx.date).toLocaleDateString()} • ${tx.method} • Ref: ${tx.reference}
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>`;
+                    }).join('')}
                             
                             ${(investment.dividendTransactions && investment.dividendTransactions.length > 0) || (investment.withdrawalTransactions && investment.withdrawalTransactions.length > 0) ? `
                                 <div class="mt-4 pt-4 border-t">
@@ -4731,8 +4798,36 @@
                 return;
             }
             
-            // Show unit selection modal first
-            showCapitalWithdrawalUnitSelection(userInvestments);
+            // Check if any investments meet the 720-day holding period
+            const eligibleInvestments = userInvestments.filter(([_, investment]) => {
+                const approvedDate = new Date(investment.approvedDate || investment.timestamp);
+                const daysSinceApproval = Math.floor((new Date() - approvedDate) / (1000 * 60 * 60 * 24));
+                return daysSinceApproval >= 720;
+            });
+            
+            if (eligibleInvestments.length === 0) {
+                // Find the investment with the shortest remaining holding period
+                const investmentWithShortestWait = userInvestments.reduce((shortest, [slotId, investment]) => {
+                    const approvedDate = new Date(investment.approvedDate || investment.timestamp);
+                    const daysSinceApproval = Math.floor((new Date() - approvedDate) / (1000 * 60 * 60 * 24));
+                    const remainingDays = 720 - daysSinceApproval;
+                    
+                    if (!shortest || remainingDays < shortest.remainingDays) {
+                        return { slotId, investment, remainingDays };
+                    }
+                    return shortest;
+                }, null);
+                
+                alert(`❌ Capital Withdrawal Not Available\n\n` +
+                      `All your investments are still within the 720-day holding period.\n\n` +
+                      `Shortest wait remaining: ${investmentWithShortestWait.remainingDays} days\n` +
+                      `Unit: ${investmentWithShortestWait.investment.slotNumber || generateSlotNumber(investmentWithShortestWait.slotId)}\n\n` +
+                      `Capital withdrawals are locked for 720 days from approval date to ensure investment stability.`);
+                return;
+            }
+            
+            // Show unit selection modal for eligible investments only
+            showCapitalWithdrawalUnitSelection(eligibleInvestments);
         }
         
         function showCapitalWithdrawalUnitSelection(userInvestments) {
@@ -4935,7 +5030,17 @@
         }
         
         function showAffiliateWithdrawalForm(availableBalance) {
-            const modal = document.getElementById('affiliateWithdrawalRequestModal');
+            // Create modal if it doesn't exist
+            let modal = document.getElementById('affiliateWithdrawalRequestModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'affiliateWithdrawalRequestModal';
+                modal.className = 'modal fixed inset-0 z-50 hidden items-center justify-center p-4';
+                modal.style.backgroundColor = 'rgba(0,0,0,0.7)';
+                modal.innerHTML = '<div class="form-container max-w-md w-full p-8 max-h-[90vh] overflow-y-auto bg-white rounded-lg"></div>';
+                document.body.appendChild(modal);
+            }
+            
             const container = modal.querySelector('.form-container');
             
             container.innerHTML = `
@@ -5065,9 +5170,22 @@
             const allWithdrawals = Object.entries(safeWithdrawalRequests);
             const allAffiliateWithdrawals = Object.entries(safeAffiliateWithdrawalRequests);
             
+            // Get all withdrawal history
+            const approvedWithdrawals = allWithdrawals.filter(([_, r]) => r && r.status === 'approved');
+            const approvedAffiliateWithdrawals = allAffiliateWithdrawals.filter(([_, r]) => r && r.status === 'approved');
+            const declinedWithdrawals = allWithdrawals.filter(([_, r]) => r && r.status === 'declined');
+            const declinedAffiliateWithdrawals = allAffiliateWithdrawals.filter(([_, r]) => r && r.status === 'declined');
+            
             container.innerHTML = `
                 <div class="mb-6">
                     <h4 class="text-lg font-bold mb-4">💰 Withdrawal Requests Management</h4>
+                    
+                    <!-- Tab Navigation -->
+                    <div class="flex mb-4 border-b">
+                        <button onclick="showWithdrawalTab('pending')" id="pendingWithdrawalTab" class="px-4 py-2 font-semibold border-b-2 border-blue-600 text-blue-600">Pending Requests</button>
+                        <button onclick="showWithdrawalTab('history')" id="historyWithdrawalTab" class="px-4 py-2 font-semibold text-gray-500 hover:text-gray-700">Withdrawal History</button>
+                    </div>
+                    
                     <div class="grid md:grid-cols-4 gap-4 mb-6">
                         <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
                             <div class="text-2xl font-bold text-yellow-800">${pendingWithdrawals.length}</div>
@@ -5078,15 +5196,295 @@
                             <div class="text-sm text-orange-600">Pending Affiliate Withdrawals</div>
                         </div>
                         <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-                            <div class="text-2xl font-bold text-green-800">${allWithdrawals.filter(([_, r]) => r.status === 'approved').length + allAffiliateWithdrawals.filter(([_, r]) => r.status === 'approved').length}</div>
+                            <div class="text-2xl font-bold text-green-800">${approvedWithdrawals.length + approvedAffiliateWithdrawals.length}</div>
                             <div class="text-sm text-green-600">Total Approved</div>
                         </div>
                         <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-                            <div class="text-2xl font-bold text-red-800">${allWithdrawals.filter(([_, r]) => r.status === 'declined').length + allAffiliateWithdrawals.filter(([_, r]) => r.status === 'declined').length}</div>
+                            <div class="text-2xl font-bold text-red-800">${declinedWithdrawals.length + declinedAffiliateWithdrawals.length}</div>
                             <div class="text-sm text-red-600">Total Declined</div>
                         </div>
                     </div>
                 </div>
+                
+                <!-- Pending Requests Tab -->
+                <div id="pendingWithdrawalContent" class="space-y-6"></div>
+                
+                <!-- History Tab -->
+                <div id="historyWithdrawalContent" class="space-y-6 hidden">
+                    <div class="bg-white border rounded-lg p-6">
+                        <h4 class="text-lg font-bold mb-4 text-green-800">📋 Withdrawal History</h4>
+                        
+                        <!-- Filter Options -->
+                        <div class="mb-4 flex gap-4">
+                            <select id="historyFilter" onchange="filterWithdrawalHistory()" class="p-2 border rounded">
+                                <option value="all">All Withdrawals</option>
+                                <option value="dividend">Dividend Withdrawals</option>
+                                <option value="capital">Capital Withdrawals</option>
+                                <option value="affiliate">Affiliate Withdrawals</option>
+                            </select>
+                            <select id="statusFilter" onchange="filterWithdrawalHistory()" class="p-2 border rounded">
+                                <option value="all">All Status</option>
+                                <option value="approved">Approved Only</option>
+                                <option value="declined">Declined Only</option>
+                            </select>
+                        </div>
+                        
+                        <div id="withdrawalHistoryList" class="space-y-3 max-h-96 overflow-y-auto">
+                            <!-- History will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Load pending requests by default
+            showWithdrawalTab('pending');
+        }
+        
+        function showWithdrawalTab(tabName) {
+            // Update tab styles
+            document.getElementById('pendingWithdrawalTab').className = 'px-4 py-2 font-semibold text-gray-500 hover:text-gray-700';
+            document.getElementById('historyWithdrawalTab').className = 'px-4 py-2 font-semibold text-gray-500 hover:text-gray-700';
+            
+            // Hide all content
+            document.getElementById('pendingWithdrawalContent').classList.add('hidden');
+            document.getElementById('historyWithdrawalContent').classList.add('hidden');
+            
+            if (tabName === 'pending') {
+                document.getElementById('pendingWithdrawalTab').className = 'px-4 py-2 font-semibold border-b-2 border-blue-600 text-blue-600';
+                document.getElementById('pendingWithdrawalContent').classList.remove('hidden');
+                loadPendingWithdrawals();
+            } else if (tabName === 'history') {
+                document.getElementById('historyWithdrawalTab').className = 'px-4 py-2 font-semibold border-b-2 border-blue-600 text-blue-600';
+                document.getElementById('historyWithdrawalContent').classList.remove('hidden');
+                loadWithdrawalHistory();
+            }
+        }
+        
+        function loadPendingWithdrawals() {
+            const container = document.getElementById('pendingWithdrawalContent');
+            
+            const safeWithdrawalRequests = withdrawalRequests || {};
+            const safeAffiliateWithdrawalRequests = affiliateWithdrawalRequests || {};
+            
+            const pendingWithdrawals = Object.entries(safeWithdrawalRequests).filter(([_, request]) => 
+                request && request.status === 'pending'
+            );
+            
+            const pendingAffiliateWithdrawals = Object.entries(safeAffiliateWithdrawalRequests).filter(([_, request]) => 
+                request && request.status === 'pending'
+            );
+            
+            let content = '';
+            
+            if (pendingWithdrawals.length > 0) {
+                content += `
+                    <div class="mb-8">
+                        <h4 class="text-lg font-bold mb-4 text-yellow-800">⏳ Pending Investor Withdrawals</h4>
+                        <div class="space-y-4">
+                            ${pendingWithdrawals.map(([requestId, request]) => `
+                                <div class="bg-white border rounded-lg p-4">
+                                    <div class="flex justify-between items-start mb-4">
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <span class="font-semibold text-lg">${request.type === 'dividend' ? '💰 Dividend' : '🏦 Capital'} Withdrawal</span>
+                                                <span class="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded">${request.status}</span>
+                                            </div>
+                                            <p class="text-sm text-gray-600">Email: ${request.email || 'N/A'}</p>
+                                            <p class="text-sm text-gray-600">Amount: ₱${(request.amount || request.grossAmount || 0).toLocaleString()}</p>
+                                            <p class="text-sm text-gray-600">Method: ${request.method || 'N/A'}</p>
+                                            <p class="text-sm text-gray-600">Account: ${request.accountDetails || 'N/A'}</p>
+                                            ${request.reason ? `<p class="text-sm text-gray-600">Reason: ${request.reason}</p>` : ''}
+                                            <p class="text-xs text-gray-400">Requested: ${request.timestamp ? new Date(request.timestamp).toLocaleDateString() : 'N/A'}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium mb-2">Admin Notes</label>
+                                        <textarea id="adminNotes_${requestId}" placeholder="Add notes for this withdrawal request..." 
+                                                  class="w-full p-2 border rounded text-sm h-16">${request.adminNotes || ''}</textarea>
+                                    </div>
+                                    
+                                    <div class="flex gap-3">
+                                        <button onclick="approveWithdrawalRequest('${requestId}')" 
+                                                class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex-1 font-semibold">
+                                            ✅ APPROVE
+                                        </button>
+                                        <button onclick="declineWithdrawalRequest('${requestId}')" 
+                                                class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 flex-1 font-semibold">
+                                            ❌ DECLINE
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (pendingAffiliateWithdrawals.length > 0) {
+                content += `
+                    <div class="mb-8">
+                        <h4 class="text-lg font-bold mb-4 text-orange-800">⏳ Pending Affiliate Withdrawals</h4>
+                        <div class="space-y-4">
+                            ${pendingAffiliateWithdrawals.map(([requestId, request]) => `
+                                <div class="bg-white border rounded-lg p-4">
+                                    <div class="flex justify-between items-start mb-4">
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <span class="font-semibold text-lg">💸 Commission Withdrawal</span>
+                                                <span class="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded">${request.status}</span>
+                                            </div>
+                                            <p class="text-sm text-gray-600">Affiliate: ${request.affiliateName || 'N/A'}</p>
+                                            <p class="text-sm text-gray-600">Email: ${request.email || 'N/A'}</p>
+                                            <p class="text-sm text-gray-600">Affiliate #: ${request.affiliateNumber || 'N/A'}</p>
+                                            <p class="text-sm text-gray-600">Amount: ₱${(request.amount || request.grossAmount || 0).toLocaleString()}</p>
+                                            <p class="text-sm text-gray-600">Method: ${request.method || 'N/A'}</p>
+                                            <p class="text-sm text-gray-600">Account: ${request.accountDetails || 'N/A'}</p>
+                                            <p class="text-xs text-gray-400">Requested: ${request.timestamp ? new Date(request.timestamp).toLocaleDateString() : 'N/A'}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium mb-2">Admin Notes</label>
+                                        <textarea id="adminNotesAff_${requestId}" placeholder="Add notes for this withdrawal request..." 
+                                                  class="w-full p-2 border rounded text-sm h-16">${request.adminNotes || ''}</textarea>
+                                    </div>
+                                    
+                                    <div class="flex gap-3">
+                                        <button onclick="approveAffiliateWithdrawalRequest('${requestId}')" 
+                                                class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex-1 font-semibold">
+                                            ✅ APPROVE
+                                        </button>
+                                        <button onclick="declineAffiliateWithdrawalRequest('${requestId}')" 
+                                                class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 flex-1 font-semibold">
+                                            ❌ DECLINE
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (pendingWithdrawals.length === 0 && pendingAffiliateWithdrawals.length === 0) {
+                content = `
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+                        <div class="text-green-800 text-xl font-bold mb-2">✅ All Caught Up!</div>
+                        <p class="text-green-700">No pending withdrawal requests to review.</p>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = content;
+        }
+        
+        function loadWithdrawalHistory() {
+            filterWithdrawalHistory();
+        }
+        
+        function filterWithdrawalHistory() {
+            const historyFilter = document.getElementById('historyFilter')?.value || 'all';
+            const statusFilter = document.getElementById('statusFilter')?.value || 'all';
+            const container = document.getElementById('withdrawalHistoryList');
+            
+            if (!container) return;
+            
+            const safeWithdrawalRequests = withdrawalRequests || {};
+            const safeAffiliateWithdrawalRequests = affiliateWithdrawalRequests || {};
+            
+            // Combine all withdrawal history
+            let allHistory = [];
+            
+            // Add investor withdrawals
+            Object.entries(safeWithdrawalRequests).forEach(([requestId, request]) => {
+                if (!request || (statusFilter !== 'all' && request.status !== statusFilter)) return;
+                if (historyFilter === 'dividend' && request.type !== 'dividend') return;
+                if (historyFilter === 'capital' && request.type !== 'capital') return;
+                if (historyFilter === 'affiliate') return; // Skip investor withdrawals for affiliate filter
+                
+                allHistory.push({
+                    id: requestId,
+                    type: request.type,
+                    category: 'investor',
+                    email: request.email,
+                    amount: request.amount || request.grossAmount || 0,
+                    method: request.method,
+                    status: request.status,
+                    timestamp: request.processedDate || request.timestamp,
+                    adminNotes: request.adminNotes,
+                    reason: request.reason
+                });
+            });
+            
+            // Add affiliate withdrawals
+            Object.entries(safeAffiliateWithdrawalRequests).forEach(([requestId, request]) => {
+                if (!request || (statusFilter !== 'all' && request.status !== statusFilter)) return;
+                if (historyFilter !== 'all' && historyFilter !== 'affiliate') return;
+                
+                allHistory.push({
+                    id: requestId,
+                    type: 'commission',
+                    category: 'affiliate',
+                    email: request.email,
+                    affiliateName: request.affiliateName,
+                    affiliateNumber: request.affiliateNumber,
+                    amount: request.amount || request.grossAmount || 0,
+                    method: request.method,
+                    status: request.status,
+                    timestamp: request.processedDate || request.timestamp,
+                    adminNotes: request.adminNotes
+                });
+            });
+            
+            // Sort by timestamp (newest first)
+            allHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            if (allHistory.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <p>No withdrawal history found for the selected filters.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = allHistory.map(item => `
+                <div class="bg-white border rounded-lg p-4">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="font-semibold text-lg">
+                                    ${item.type === 'dividend' ? '💰 Dividend' : 
+                                      item.type === 'capital' ? '🏦 Capital' : 
+                                      '💸 Commission'} Withdrawal
+                                </span>
+                                <span class="text-sm ${
+                                    item.status === 'approved' ? 'bg-green-100 text-green-800' : 
+                                    item.status === 'declined' ? 'bg-red-100 text-red-800' : 
+                                    'bg-yellow-100 text-yellow-800'
+                                } px-2 py-1 rounded">${item.status}</span>
+                            </div>
+                            <p class="text-sm text-gray-600">
+                                ${item.category === 'affiliate' ? 
+                                    `Affiliate: ${item.affiliateName} (${item.affiliateNumber})` : 
+                                    `Investor: ${item.email}`}
+                            </p>
+                            <p class="text-sm text-gray-600">Amount: ₱${item.amount.toLocaleString()}</p>
+                            <p class="text-sm text-gray-600">Method: ${item.method || 'N/A'}</p>
+                            ${item.reason ? `<p class="text-sm text-gray-600">Reason: ${item.reason}</p>` : ''}
+                            ${item.adminNotes ? `<p class="text-sm text-blue-600">Admin Notes: ${item.adminNotes}</p>` : ''}
+                            <p class="text-xs text-gray-400">Processed: ${item.timestamp ? new Date(item.timestamp).toLocaleDateString() : 'N/A'}</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold ${item.status === 'approved' ? 'text-green-600' : item.status === 'declined' ? 'text-red-600' : 'text-yellow-600'}">
+                                ₱${item.amount.toLocaleString()}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
                 
                 ${pendingWithdrawals.length > 0 ? `
                     <div class="mb-8">
@@ -5198,20 +5596,6 @@
             request.adminNotes = adminNotes;
             request.processedDate = new Date().toISOString();
             
-            // If it's a capital withdrawal, remove the specific slot
-            if (request.type === 'capital' && request.slotId) {
-                delete investments[request.slotId];
-                
-                // Update slot appearance
-                const slot = document.querySelector(`[data-slot-id="${request.slotId}"]`);
-                if (slot) {
-                    updateSlotAppearance(slot, request.slotId);
-                }
-                
-                // Save updated investments
-                await saveData('investments', investments);
-            }
-            
             // Save updated withdrawal request
             await saveToFirebase('withdrawalRequests', requestId, request);
             
@@ -5219,7 +5603,11 @@
             loadAdminWithdrawals();
             updateDashboard();
             
-            alert(`✅ Withdrawal request approved!\n\nRequest ID: ${requestId}\nAmount: ₱${request.amount.toLocaleString()}\nMethod: ${request.method}\n\n${request.type === 'capital' ? 'All investor slots have been removed.' : 'Please process the payment manually.'}`);
+            if (request.type === 'capital') {
+                alert(`✅ Capital withdrawal request approved!\n\nRequest ID: ${requestId}\nAmount: ₱${request.amount.toLocaleString()}\nMethod: ${request.method}\n\n⚠️ IMPORTANT: You must manually revoke the investment unit in the Investment tab to complete the capital withdrawal process.\n\nPlease process the payment manually.`);
+            } else {
+                alert(`✅ Dividend withdrawal request approved!\n\nRequest ID: ${requestId}\nAmount: ₱${request.amount.toLocaleString()}\nMethod: ${request.method}\n\nPlease process the payment manually.`);
+            }
         }
 
         async function declineWithdrawalRequest(requestId) {
@@ -5335,7 +5723,7 @@
                     <h4 class="text-2xl font-bold mb-6 text-center">📊 Financial Statement</h4>
                     
                     <!-- Summary Cards -->
-                    <div class="grid md:grid-cols-5 gap-4 mb-8">
+                    <div class="grid md:grid-cols-6 gap-4 mb-8">
                         <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
                             <div class="text-2xl font-bold text-green-800">₱${financialData.totalInvestmentsReceived.toLocaleString()}</div>
                             <div class="text-sm text-green-600">Total Investments Received</div>
@@ -5351,6 +5739,10 @@
                         <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
                             <div class="text-2xl font-bold text-red-800">₱${financialData.totalCapitalWithdrawals.toLocaleString()}</div>
                             <div class="text-sm text-red-600">Capital Withdrawals</div>
+                        </div>
+                        <div class="bg-pink-50 border border-pink-200 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-pink-800">₱${financialData.totalAffiliateWithdrawals.toLocaleString()}</div>
+                            <div class="text-sm text-pink-600">Affiliate Withdrawals</div>
                         </div>
                         <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
                             <div class="text-2xl font-bold text-purple-800">₱${financialData.totalFeesCollected.toLocaleString()}</div>
@@ -5388,7 +5780,7 @@
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-indigo-700">Total Expenses:</span>
-                                    <span class="font-semibold text-red-600">₱${(financialData.totalDividendsPaid + financialData.totalCommissionsPaid + financialData.totalCapitalWithdrawals).toLocaleString()}</span>
+                                    <span class="font-semibold text-red-600">₱${(financialData.totalDividendsPaid + financialData.totalCommissionsPaid + financialData.totalCapitalWithdrawals + financialData.totalAffiliateWithdrawals).toLocaleString()}</span>
                                 </div>
                                 <hr class="border-indigo-300">
                                 <div class="flex justify-between font-bold text-lg">
@@ -5417,13 +5809,15 @@
                                             tx.type === 'dividend' ? 'text-blue-800' :
                                             tx.type === 'commission' ? 'text-orange-800' :
                                             tx.type === 'capital' ? 'text-red-800' :
+                                            tx.type === 'affiliate_withdrawal' ? 'text-pink-800' :
                                             'text-purple-800'
                                         }">
                                             ${tx.type === 'investment' ? '💰 Investment Received' :
                                               tx.type === 'dividend' ? '📊 Dividend Paid' :
                                               tx.type === 'commission' ? '🤝 Commission Paid' :
                                               tx.type === 'capital' ? '🏦 Capital Withdrawal' :
-                                              '💸 Fee Collected'}
+                                              tx.type === 'affiliate_withdrawal' ? '💸 Affiliate Withdrawal' :
+                                              '💳 Fee Collected'}
                                         </div>
                                         <div class="text-sm text-gray-600">${tx.description}</div>
                                         <div class="text-xs text-gray-400">${new Date(tx.date).toLocaleDateString()}</div>
@@ -5485,6 +5879,7 @@
             let totalDividendsPaid = 0;
             let totalCommissionsPaid = 0;
             let totalCapitalWithdrawals = 0;
+            let totalAffiliateWithdrawals = 0; // Add affiliate withdrawals as expense
             let totalTransferFees = 0;
             let totalAdminFees = 0;
             const recentTransactions = [];
@@ -5569,9 +5964,18 @@
                 }
             });
             
-            // Calculate from affiliate withdrawal requests (fees)
+            // Calculate from affiliate withdrawal requests (fees and withdrawals)
             Object.entries(affiliateWithdrawalRequests).forEach(([requestId, request]) => {
                 if (request.status === 'approved') {
+                    // Track affiliate withdrawals as expenses
+                    totalAffiliateWithdrawals += request.amount || request.grossAmount || 0;
+                    recentTransactions.push({
+                        type: 'affiliate_withdrawal',
+                        amount: -(request.amount || request.grossAmount || 0),
+                        date: request.processedDate || request.timestamp,
+                        description: `Affiliate withdrawal - ${request.affiliateName}`
+                    });
+                    
                     const transferFee = request.transferFee || 20;
                     const adminFee = request.adminFee || 30;
                     totalTransferFees += transferFee;
@@ -5595,7 +5999,7 @@
             });
             
             const totalFeesCollected = totalTransferFees + totalAdminFees;
-            const netPosition = (totalInvestmentsReceived + totalFeesCollected) - (totalDividendsPaid + totalCommissionsPaid + totalCapitalWithdrawals);
+            const netPosition = (totalInvestmentsReceived + totalFeesCollected) - (totalDividendsPaid + totalCommissionsPaid + totalCapitalWithdrawals + totalAffiliateWithdrawals);
             
             // Sort transactions by date (newest first)
             recentTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -5605,6 +6009,7 @@
                 totalDividendsPaid,
                 totalCommissionsPaid,
                 totalCapitalWithdrawals,
+                totalAffiliateWithdrawals,
                 totalTransferFees,
                 totalAdminFees,
                 totalFeesCollected,
@@ -5904,6 +6309,116 @@
             }
         }
 
+        // ===== INVESTMENT HISTORY FUNCTIONS =====
+        function showInvestmentHistory(slotId) {
+            const investment = investments[slotId];
+            if (!investment) {
+                alert('Investment not found!');
+                return;
+            }
+            
+            const approvedDate = new Date(investment.approvedDate || investment.timestamp);
+            const daysSinceApproval = Math.floor((new Date() - approvedDate) / (1000 * 60 * 60 * 24));
+            
+            // Combine all transactions
+            const allTransactions = [];
+            
+            // Add dividend transactions
+            if (investment.dividendTransactions && investment.dividendTransactions.length > 0) {
+                allTransactions.push(...investment.dividendTransactions.map(tx => ({
+                    ...tx,
+                    category: 'dividend',
+                    displayAmount: `+₱${tx.amount.toLocaleString()}`,
+                    displayType: '💰 Dividend Payment'
+                })));
+            }
+            
+            // Add withdrawal transactions
+            if (investment.withdrawalTransactions && investment.withdrawalTransactions.length > 0) {
+                allTransactions.push(...investment.withdrawalTransactions.map(tx => ({
+                    ...tx,
+                    category: 'withdrawal',
+                    displayAmount: `-₱${tx.amount.toLocaleString()}`,
+                    displayType: '💸 Dividend Withdrawal'
+                })));
+            }
+            
+            // Sort by date (newest first)
+            allTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            const historyModal = document.createElement('div');
+            historyModal.className = 'modal fixed inset-0 z-50 flex items-center justify-center p-4';
+            historyModal.style.backgroundColor = 'rgba(0,0,0,0.7)';
+            historyModal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-2xl font-bold">📊 Investment History</h3>
+                        <button onclick="this.closest('.modal').remove()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                    </div>
+                    
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <h4 class="font-bold text-blue-800 mb-2">Investment Details</h4>
+                                <p class="text-sm text-blue-700">Unit: ${investment.slotNumber || generateSlotNumber(slotId)}</p>
+                                <p class="text-sm text-blue-700">Investor: ${investment.fullName}</p>
+                                <p class="text-sm text-blue-700">Floor: ${investment.floorInfo}</p>
+                                <p class="text-sm text-blue-700">Amount: ₱${parseInt(investment.investmentAmount).toLocaleString()}</p>
+                                <p class="text-sm text-blue-700">Approved: ${approvedDate.toLocaleDateString()} (${daysSinceApproval} days ago)</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-blue-800 mb-2">Financial Summary</h4>
+                                <p class="text-sm text-blue-700">Total Dividends: ₱${(investment.dividendEarned || 0).toLocaleString()}</p>
+                                <p class="text-sm text-blue-700">Total Withdrawn: ₱${(investment.dividendWithdrawn || 0).toLocaleString()}</p>
+                                <p class="text-sm text-blue-700 font-semibold">Available Balance: ₱${((investment.dividendEarned || 0) - (investment.dividendWithdrawn || 0)).toLocaleString()}</p>
+                                <p class="text-sm text-blue-700">Transactions: ${allTransactions.length}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-bold">📋 Transaction History</h4>
+                        ${allTransactions.length === 0 ? `
+                            <div class="text-center text-gray-500 py-8">
+                                <p>No transactions recorded yet.</p>
+                            </div>
+                        ` : `
+                            <div class="space-y-3 max-h-60 overflow-y-auto">
+                                ${allTransactions.map(tx => `
+                                    <div class="bg-white border rounded-lg p-3">
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex-1">
+                                                <div class="font-semibold ${tx.category === 'dividend' ? 'text-green-800' : 'text-orange-800'}">
+                                                    ${tx.displayType}
+                                                </div>
+                                                <div class="text-sm text-gray-600">${tx.description}</div>
+                                                <div class="text-xs text-gray-400">
+                                                    ${new Date(tx.date).toLocaleDateString()}
+                                                    ${tx.method ? ` • ${tx.method}` : ''}
+                                                    ${tx.reference ? ` • Ref: ${tx.reference}` : ''}
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="font-bold ${tx.category === 'dividend' ? 'text-green-600' : 'text-orange-600'}">
+                                                    ${tx.displayAmount}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `}
+                    </div>
+                    
+                    <div class="flex gap-3 pt-6 border-t">
+                        <button onclick="this.closest('.modal').remove()" class="flex-1 bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600 transition-colors">Close</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(historyModal);
+        }
+
         // ===== REFRESH FUNCTIONS =====
         async function refreshPortfolioData() {
             if (!currentUserEmail) {
@@ -6196,5 +6711,5 @@
 
 
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98671a2e30447575',t:'MTc1OTEwMjk5OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9868a65541f0e384',t:'MTc1OTExOTIyNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
