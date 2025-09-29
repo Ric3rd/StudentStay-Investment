@@ -2585,6 +2585,7 @@
                                     Total withdrawn: ₱${(investment.dividendWithdrawn || 0).toLocaleString()}
                                 </div>
                             </div>
+                            </div>
                         `).join('')}
                     </div>
                 `;
@@ -5485,8 +5486,25 @@
                 </div>
             `).join('');
         }
-                
-                ${pendingWithdrawals.length > 0 ? `
+        
+        function loadPendingWithdrawals() {
+            const container = document.getElementById('pendingWithdrawalContent');
+            
+            const safeWithdrawalRequests = withdrawalRequests || {};
+            const safeAffiliateWithdrawalRequests = affiliateWithdrawalRequests || {};
+            
+            const pendingWithdrawals = Object.entries(safeWithdrawalRequests).filter(([_, request]) => 
+                request && request.status === 'pending'
+            );
+            
+            const pendingAffiliateWithdrawals = Object.entries(safeAffiliateWithdrawalRequests).filter(([_, request]) => 
+                request && request.status === 'pending'
+            );
+            
+            let content = '';
+            
+            if (pendingWithdrawals.length > 0) {
+                content += `
                     <div class="mb-8">
                         <h4 class="text-lg font-bold mb-4 text-yellow-800">⏳ Pending Investor Withdrawals</h4>
                         <div class="space-y-4">
@@ -5527,9 +5545,11 @@
                             `).join('')}
                         </div>
                     </div>
-                ` : ''}
-                
-                ${pendingAffiliateWithdrawals.length > 0 ? `
+                `;
+            }
+            
+            if (pendingAffiliateWithdrawals.length > 0) {
+                content += `
                     <div class="mb-8">
                         <h4 class="text-lg font-bold mb-4 text-orange-800">⏳ Pending Affiliate Withdrawals</h4>
                         <div class="space-y-4">
@@ -5571,15 +5591,19 @@
                             `).join('')}
                         </div>
                     </div>
-                ` : ''}
-                
-                ${pendingWithdrawals.length === 0 && pendingAffiliateWithdrawals.length === 0 ? `
+                `;
+            }
+            
+            if (pendingWithdrawals.length === 0 && pendingAffiliateWithdrawals.length === 0) {
+                content = `
                     <div class="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
                         <div class="text-green-800 text-xl font-bold mb-2">✅ All Caught Up!</div>
                         <p class="text-green-700">No pending withdrawal requests to review.</p>
                     </div>
-                ` : ''}
-            `;
+                `;
+            }
+            
+            container.innerHTML = content;
         }
 
         async function approveWithdrawalRequest(requestId) {
@@ -6711,5 +6735,5 @@
 
 
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9868a65541f0e384',t:'MTc1OTExOTIyNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9868ad9623f4e384',t:'MTc1OTExOTUyMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
