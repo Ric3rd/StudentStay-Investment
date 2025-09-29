@@ -3823,38 +3823,6 @@
                             ` : ''}
                         </div>`;
                     }).join('')}
-                            
-                            ${(investment.dividendTransactions && investment.dividendTransactions.length > 0) || (investment.withdrawalTransactions && investment.withdrawalTransactions.length > 0) ? `
-                                <div class="mt-4 pt-4 border-t">
-                                    <h5 class="font-semibold text-gray-700 mb-3">📊 Transaction History</h5>
-                                    <div class="space-y-2 max-h-40 overflow-y-auto">
-                                        ${(investment.dividendTransactions || []).map(tx => `
-                                            <div class="bg-green-50 border border-green-200 rounded p-2 text-sm">
-                                                <div class="flex justify-between items-center">
-                                                    <span class="text-green-800 font-medium">💰 Dividend Payment</span>
-                                                    <span class="text-green-600 font-bold">+₱${tx.amount.toLocaleString()}</span>
-                                                </div>
-                                                <div class="text-xs text-green-600 mt-1">
-                                                    ${new Date(tx.date).toLocaleDateString()} • ${tx.description}
-                                                </div>
-                                            </div>
-                                        `).join('')}
-                                        ${(investment.withdrawalTransactions || []).map(tx => `
-                                            <div class="bg-orange-50 border border-orange-200 rounded p-2 text-sm">
-                                                <div class="flex justify-between items-center">
-                                                    <span class="text-orange-800 font-medium">💸 Withdrawal</span>
-                                                    <span class="text-orange-600 font-bold">-₱${tx.amount.toLocaleString()}</span>
-                                                </div>
-                                                <div class="text-xs text-orange-600 mt-1">
-                                                    ${new Date(tx.date).toLocaleDateString()} • ${tx.method} • Ref: ${tx.reference}
-                                                </div>
-                                            </div>
-                                        `).join('')}
-                                    </div>
-                                </div>
-                            ` : ''}
-                        </div>
-                    `).join('')}
                 </div>
             `;
             
@@ -6735,5 +6703,5 @@
 
 
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9868ad9623f4e384',t:'MTc1OTExOTUyMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9868b2653641e384',t:'MTc1OTExOTcxOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
